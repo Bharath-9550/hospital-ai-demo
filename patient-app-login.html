@@ -2259,6 +2259,24 @@
   @keyframes paSpin { to { transform:rotate(360deg); } }
   #paLogout { position:fixed; right:12px; bottom:12px; z-index:99980; border:none; border-radius:999px; padding:10px 16px; background:rgba(11,59,94,.92); color:#fff; font-size:14px; font-weight:600; cursor:pointer; box-shadow:0 8px 20px rgba(0,0,0,.3); font-family:'Segoe UI', system-ui, sans-serif; }
   #paLogout[hidden] { display:none; }
+  #paProfile { position:fixed; inset:0; z-index:99985; display:flex; align-items:center; justify-content:center; background:rgba(6,32,52,.6); font-family:'Segoe UI', system-ui, sans-serif; }
+  #paProfile[hidden] { display:none; }
+  #paProfile .pa-card { position:relative; width:min(92vw, 380px); max-height:92vh; overflow-y:auto; background:rgba(16,68,104,.92); border:1px solid rgba(255,255,255,.45); border-radius:28px; box-shadow:0 24px 60px rgba(0,0,0,.4); padding:26px 26px 22px; color:#fff; text-align:center; }
+  #paProfile h1 { font-size:21px; font-weight:700; margin:6px 0 6px; color:#fff; }
+  #paProfile .pa-sub { font-size:14.5px; line-height:1.45; opacity:.92; }
+  #paProfile .pa-label { display:block; text-align:left; font-size:14px; font-weight:600; margin:15px 0 6px; }
+  #paProfile .pa-input { width:100%; box-sizing:border-box; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.5); border-radius:14px; padding:13px 14px; font-size:16.5px; color:#fff; outline:none; color-scheme:dark; }
+  #paProfile .pa-input::placeholder { color:rgba(255,255,255,.6); }
+  #paProfile .pa-input:focus { border-color:#fff; background:rgba(255,255,255,.24); }
+  #paProfile .pa-btn { width:100%; margin-top:16px; padding:14px; border:none; border-radius:16px; cursor:pointer; background:#fff; color:#0b3b5e; font-size:16.5px; font-weight:700; }
+  #paProfile .pa-btn.pa-ghost { background:rgba(255,255,255,.16); color:#fff; border:1px solid rgba(255,255,255,.5); box-shadow:none; }
+  #paProfile .pa-err { min-height:19px; margin-top:9px; font-size:13.5px; color:#ffe1e1; font-weight:600; }
+  #paProfile .pa-ok { min-height:19px; margin-top:9px; font-size:13.5px; color:#c9f7d9; font-weight:600; }
+  #paProfile .pa-chips { display:flex; gap:10px; margin-top:6px; }
+  #paProfile .pa-chip { flex:1; padding:11px 0; border-radius:14px; border:1.5px solid rgba(255,255,255,.55); background:rgba(255,255,255,.14); color:#fff; font-size:15px; font-weight:600; cursor:pointer; }
+  #paProfile .pa-chip.pa-sel { background:#fff; color:#0b3b5e; }
+  #paProfile .pa-phone { font-size:17px; font-weight:700; letter-spacing:.4px; padding:10px 0 2px; }
+  #paProfile .pa-note { font-size:13px; opacity:.8; line-height:1.45; }
 </style>
 
 <div id="paLogin" hidden>
@@ -2396,6 +2414,48 @@
 </div>
 <button id="paLogout" hidden></button>
 
+<div id="paProfile" hidden>
+  <div class="pa-card">
+    <h1>My profile</h1>
+    <p class="pa-sub">See and change your details anytime.
+      <span style="display:block;margin-top:2px;font-size:13.5px;opacity:.85;">మీ వివరాలు చూడండి, మార్చండి</span></p>
+
+    <label class="pa-label">Mobile number (your sign-in)</label>
+    <div class="pa-phone" id="ppPhone"></div>
+    <p class="pa-note">The number is your identity, so it cannot be changed here. If you get a new number, the clinic desk can move your history to it.</p>
+
+    <label class="pa-label" for="ppName">Your full name</label>
+    <input id="ppName" class="pa-input" type="text" placeholder="Your full name">
+
+    <label class="pa-label" for="ppAge">Age</label>
+    <input id="ppAge" class="pa-input" type="tel" inputmode="numeric" maxlength="3" placeholder="Your age">
+
+    <label class="pa-label">Gender</label>
+    <div class="pa-chips" id="ppGender">
+      <button class="pa-chip" type="button">Female</button>
+      <button class="pa-chip" type="button">Male</button>
+      <button class="pa-chip" type="button">Other</button>
+    </div>
+
+    <label class="pa-label" for="ppDob">Date of birth</label>
+    <input id="ppDob" class="pa-input" type="date">
+
+    <label class="pa-label" for="ppEmail">Email</label>
+    <input id="ppEmail" class="pa-input" type="email" placeholder="you@example.com">
+
+    <div class="pa-err" id="ppErr"></div>
+    <div class="pa-ok" id="ppOk"></div>
+    <button class="pa-btn" id="ppSave">Save changes</button>
+
+    <label class="pa-label" for="ppPass">Set or change password</label>
+    <input id="ppPass" class="pa-input" type="password" placeholder="New password (6+ characters)">
+    <button class="pa-btn pa-ghost" id="ppPassBtn">Save password</button>
+
+    <button class="pa-btn pa-ghost" id="ppSignOut">Sign out</button>
+    <button class="pa-btn pa-ghost" id="ppClose">Close</button>
+  </div>
+</div>
+
 <script>
 (function () {
   var API = 'https://backend-rbvn.onrender.com';
@@ -2459,6 +2519,7 @@
     return origFetch(u, opts).then(function (r) {
       if (r.status === 401 && String(u).indexOf('/api/public/demo/auth/') > -1) {
         clearSess();
+        var pp = $('paProfile'); if (pp) pp.hidden = true;
         showGate('phone');
       }
       return r;
@@ -2480,7 +2541,7 @@
     var sess = loadSess();
     var chip = $('paLogout');
     if (sess) {
-      chip.textContent = 'Signed in as ' + (sess.patient.name || sess.patient.phone) + ' · Sign out';
+      chip.textContent = 'Hi, ' + (sess.patient.name || sess.patient.phone) + ' · My profile';
       chip.hidden = false;
     } else {
       chip.hidden = true;
@@ -2670,12 +2731,77 @@
     });
   });
 
-  /* sign out */
-  $('paLogout').addEventListener('click', function () {
+  /* sign out (shared by the profile panel) */
+  function doLogout() {
     var sess = loadSess();
     if (sess) { api('/logout', jsonOpts('POST', null, sess.token)).catch(function () {}); }
     clearSess();
     location.reload();
+  }
+
+  /* ---------- my profile: see and change your own data ---------- */
+  var ppGender = '';
+  function ppMarkGender() {
+    Array.prototype.forEach.call(document.querySelectorAll('#ppGender .pa-chip'), function (c) {
+      c.classList.toggle('pa-sel', c.textContent === ppGender);
+    });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('#ppGender .pa-chip'), function (c) {
+    c.addEventListener('click', function () { ppGender = c.textContent; ppMarkGender(); });
+  });
+  $('ppAge').addEventListener('input', function () { digits($('ppAge')); });
+
+  function openProfile() {
+    var sess = loadSess();
+    if (!sess) { showGate('phone'); return; }
+    api('/me', { headers: { 'Authorization': 'Bearer ' + sess.token } }).then(function (p) {
+      saveSess(sess.token, p);
+      $('ppPhone').textContent = p.phone;
+      $('ppName').value = p.name || '';
+      $('ppAge').value = (p.age === null || p.age === undefined) ? '' : p.age;
+      $('ppDob').value = p.dateOfBirth || '';
+      $('ppEmail').value = p.email || '';
+      ppGender = p.gender || '';
+      ppMarkGender();
+      err('ppErr', ''); $('ppOk').textContent = '';
+      $('paProfile').hidden = false;
+    }).catch(function () {
+      clearSess();
+      showGate('phone');
+    });
+  }
+  $('paLogout').addEventListener('click', openProfile);
+  $('ppClose').addEventListener('click', function () { $('paProfile').hidden = true; });
+  $('ppSignOut').addEventListener('click', doLogout);
+
+  $('ppSave').addEventListener('click', function () {
+    err('ppErr', ''); $('ppOk').textContent = '';
+    var sess = loadSess();
+    if (!sess) { showGate('phone'); return; }
+    var name = $('ppName').value.trim();
+    if (name.length < 2) { err('ppErr', 'Your name cannot be empty.'); return; }
+    var body = { name: name, email: $('ppEmail').value.trim() };
+    if ($('ppAge').value) body.age = Number($('ppAge').value);
+    if (ppGender) body.gender = ppGender;
+    if ($('ppDob').value) body.dateOfBirth = $('ppDob').value;
+    api('/me', jsonOpts('PUT', body, sess.token)).then(function (p) {
+      saveSess(sess.token, p);
+      hideGate();
+      $('ppOk').textContent = 'Saved. Your details are up to date.';
+    }).catch(function () { err('ppErr', 'Could not save. Please try again.'); });
+  });
+
+  $('ppPassBtn').addEventListener('click', function () {
+    err('ppErr', ''); $('ppOk').textContent = '';
+    var sess = loadSess();
+    if (!sess) { showGate('phone'); return; }
+    api('/password/set', jsonOpts('POST', { password: $('ppPass').value }, sess.token)).then(function () {
+      $('ppPass').value = '';
+      var p = sess.patient; p.hasPassword = true; saveSess(sess.token, p);
+      $('ppOk').textContent = 'Password saved. You can sign in with it next time.';
+    }).catch(function (e) {
+      err('ppErr', e.status === 400 ? 'Password must be at least 6 characters.' : 'Could not save the password.');
+    });
   });
 
   /* ---------- entry point: validate a stored session, else gate ---------- */
