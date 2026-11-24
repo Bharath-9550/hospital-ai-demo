@@ -673,6 +673,7 @@
           <button class="nav-item" data-page="feedback"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.7l5.9-.9Z"/></svg>Feedback</button>
           <div class="nav-label" id="navStaffLabel" style="display:none">Administration</div>
           <button class="nav-item" data-page="staff" id="navStaff" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.5"/><path d="M3.5 20c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5M16 4.6a3.5 3.5 0 0 1 0 6.8M17.5 15.4c1.7.7 2.7 2.2 3 4.6"/></svg>Staff<span style="margin-left:auto; font-size:10px; font-weight:700; letter-spacing:.06em; background:var(--teal); color:#fff; border-radius:999px; padding:2px 7px">ADMIN</span></button>
+          <button class="nav-item" data-page="schedules" id="navSchedules" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>Doctor Schedules</button>
           <div class="nav-label demo-only">Under the hood — Demo only</div>
           <button class="nav-item demo-only" data-page="workflow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="6" r="2.4"/><circle cx="5" cy="18" r="2.4"/><circle cx="19" cy="12" r="2.4"/><path d="M5 8.4v7.2M7 7l9.6 3.8M7 17l9.6-3.8"/></svg>Patient Journey <span style="margin-left:auto; font-size:10px; font-weight:700; letter-spacing:.06em; background:#E8A33D; color:#23180A; border-radius:999px; padding:2px 7px">DEMO</span></button>
           <button class="nav-item demo-only" data-page="learn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6c-1.5-1.6-3.7-2-8-2v14c4.3 0 6.5.4 8 2 1.5-1.6 3.7-2 8-2V4c-4.3 0-6.5.4-8 2Z"/><path d="M12 6v14"/></svg>How It Works <span style="margin-left:auto; font-size:10px; font-weight:700; letter-spacing:.06em; background:#E8A33D; color:#23180A; border-radius:999px; padding:2px 7px">DEMO</span></button>
@@ -1132,6 +1133,66 @@
             </div>
           </section>
 
+          <!-- ================= DOCTOR SCHEDULES (booking modes, Nov 24, 2026) ================= -->
+          <section class="page" id="page-schedules">
+            <div class="sec-head">
+              <h2>Doctor Schedules</h2>
+              <p>Booking rules per doctor, enforced by the agent on every booking</p>
+            </div>
+            <div class="card">
+              <h3>Booking mode</h3>
+              <p class="card-sub">Time slots: the day is cut into slots and each slot holds a set number of patients; a full slot is refused and the agent offers the nearest open times. Token queue: patients are seen in order under a daily cap. A doctor with no hours saved yet is open at any hour, with only the capacity rule applying.</p>
+              <div class="auth-alert" id="schAlert" style="display:none" role="alert"></div>
+              <div class="staff-form">
+                <label class="field">Doctor
+                  <select id="schDoctor"></select>
+                </label>
+                <label class="field">Booking mode
+                  <select id="schMode">
+                    <option value="SLOTS">Time slots</option>
+                    <option value="TOKENS">Token queue</option>
+                  </select>
+                </label>
+                <label class="field">Slot length (minutes)
+                  <select id="schSlotMinutes">
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="15">15</option>
+                    <option value="20">20</option>
+                    <option value="30">30</option>
+                  </select>
+                </label>
+                <label class="field">Patients per slot
+                  <input id="schSlotCapacity" type="number" min="1" max="10" />
+                </label>
+                <label class="field">Daily cap (token mode)
+                  <input id="schDailyCap" type="number" min="1" max="500" />
+                </label>
+              </div>
+            </div>
+            <div class="card">
+              <h3>Weekly hours</h3>
+              <p class="card-sub">Tick the days the doctor works and set the sessions. A second session (evening) is optional. Hours apply in time slot mode; leave days below override them.</p>
+              <div id="schDays"></div>
+              <button class="btn" id="schSave" type="button" style="margin-top:14px">Save mode and hours</button>
+              <p style="font-size:12.5px; color:var(--ink-3); margin:10px 0 0" id="schStatus"></p>
+            </div>
+            <div class="card">
+              <h3>Leave days</h3>
+              <p class="card-sub">Bookings on a leave day are refused in both modes, and the agent offers the nearest working days.</p>
+              <div class="staff-form">
+                <label class="field">Date
+                  <input id="schLeaveDate" type="date" />
+                </label>
+                <label class="field">Note (optional)
+                  <input id="schLeaveNote" type="text" placeholder="e.g. Conference" />
+                </label>
+              </div>
+              <button class="btn" id="schLeaveAdd" type="button">Add leave day</button>
+              <div class="rows" id="schLeaves" style="margin-top:10px"></div>
+            </div>
+          </section>
+
           <!-- ================= WORKFLOW / PATIENT JOURNEY ================= -->
           <section class="page" id="page-workflow">
             <div class="sec-head">
@@ -1523,6 +1584,7 @@
       reports: { h1: "Reports & Labs", sub: "Every report tracked from sample collection to the patient's phone." },
       feedback: { h1: "Feedback", sub: "What patients say after their visits — collected automatically." },
       staff: { h1: "Staff", sub: "Staff accounts for this hospital — admins only." },
+      schedules: { h1: "Doctor Schedules", sub: "How each doctor takes bookings — time slots or token queue, working hours and leave." },
       workflow: { h1: "Patient Journey", sub: "The six stages every patient travels — and the machinery under each one." },
       learn: { h1: "How It Works", sub: "The teaching page: architecture, costs, hosting, and your demo script." },
       "learn-clinic": { h1: "Help & Training", sub: "Quick guides for front-desk staff — check-in, handovers, reports and follow-ups." }
@@ -1549,6 +1611,7 @@
       // The Staff page exists only for a signed-in ADMIN
       if (id === "staff" && !(window.__authUser && window.__authUser.role === "ADMIN")) id = "overview";
       if (id === "staff" && typeof window.__loadStaffList === "function") window.__loadStaffList();
+      if (id === "schedules" && typeof window.__loadSchedules === "function") window.__loadSchedules();
       currentPage = id;
       document.querySelectorAll(".page").forEach((p) => p.classList.toggle("active", p.id === "page-" + id));
       document.querySelectorAll(".nav-item").forEach((n) => n.classList.toggle("active", n.dataset.page === id));
@@ -2837,6 +2900,7 @@
       $("modeSwitch").style.display = "";
       $("navStaff").style.display = "none";
       $("navStaffLabel").style.display = "none";
+      $("navSchedules").style.display = "none";
       applyDoctorUi(false);
       // Start the demo from the same clean slate a fresh page load uses —
       // never carry a signed-in hospital's rows into the demo view.
@@ -2879,6 +2943,7 @@
       const isAdmin = user.role === "ADMIN";
       $("navStaff").style.display = isAdmin ? "" : "none";
       $("navStaffLabel").style.display = isAdmin ? "" : "none";
+      $("navSchedules").style.display = "";
       const ps = $("staffPageSub"); if (ps) ps.textContent = "People who can sign in to " + user.hospitalName;
       applyDoctorUi(isDoctor());
       showApp();
@@ -3206,6 +3271,117 @@
     }
 
     /* ---------- Staff page (ADMIN only) ---------- */
+    /* ---------- Doctor schedules (booking modes, Nov 24, 2026) ----------
+       Talks to DoctorScheduleController through the private staff API.
+       DOCTOR accounts are read-only (the server enforces it too), so for
+       them every input and button below is disabled. */
+    const SCH_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    let schDoctors = [], schCurrent = null, schDoctorId = null;
+
+    function schUrl(suffix) { return privBase() + "/doctors" + (suffix || ""); }
+    function schShowAlert(msg) { const a = $("schAlert"); if (a) { a.textContent = msg || ""; a.style.display = msg ? "" : "none"; } }
+    function schReadOnly() { return typeof isDoctor === "function" && isDoctor(); }
+
+    function renderSchDays(hours) {
+      const wrap = $("schDays"); if (!wrap) return;
+      const byDay = {};
+      (hours || []).forEach((w) => { (byDay[w.dayOfWeek] = byDay[w.dayOfWeek] || []).push(w); });
+      const dis = schReadOnly() ? " disabled" : "";
+      wrap.innerHTML = SCH_DAYS.map((name, i) => {
+        const dow = i + 1, wins = byDay[dow] || [], w1 = wins[0] || {}, w2 = wins[1] || {};
+        return '<div class="row" style="flex-wrap:wrap; gap:8px; align-items:center">'
+          + '<label style="min-width:140px; font-weight:600; font-size:13.5px"><input type="checkbox" id="schDayOn' + dow + '"' + (wins.length ? " checked" : "") + dis + "> " + name + "</label>"
+          + '<input type="time" id="schDayA' + dow + '" value="' + (w1.startTime || "") + '"' + dis + '> <span>to</span> <input type="time" id="schDayB' + dow + '" value="' + (w1.endTime || "") + '"' + dis + ">"
+          + '<span style="color:var(--ink-3); font-size:12.5px">evening:</span> <input type="time" id="schDayC' + dow + '" value="' + (w2.startTime || "") + '"' + dis + '> <span>to</span> <input type="time" id="schDayD' + dow + '" value="' + (w2.endTime || "") + '"' + dis + ">"
+          + "</div>";
+      }).join("");
+    }
+
+    function renderSchLeaves(leaves) {
+      const el = $("schLeaves"); if (!el) return;
+      const dis = schReadOnly() ? " disabled" : "";
+      el.innerHTML = (leaves && leaves.length) ? leaves.map((l) =>
+        '<div class="row"><div class="row-main"><div class="row-title">' + esc(l.date) + '</div>'
+        + '<div class="row-sub">' + esc(l.note || "On leave") + '</div></div>'
+        + '<button class="btn ghost" type="button" data-sch-leave-del="' + l.id + '"' + dis + ">Remove</button></div>").join("")
+        : '<div class="empty-note">No leave days recorded.</div>';
+      el.querySelectorAll("[data-sch-leave-del]").forEach((b) => b.addEventListener("click", () => {
+        authJson(schUrl("/" + schDoctorId + "/leaves/" + b.dataset.schLeaveDel), { method: "DELETE" })
+          .then((v) => { schCurrent = v; renderSchLeaves(v.leaves); $("schStatus").textContent = "Leave day removed."; })
+          .catch((e) => schShowAlert("Could not remove the leave day (HTTP " + e.status + ")."));
+      }));
+    }
+
+    function fillSchForm(v) {
+      schCurrent = v;
+      $("schMode").value = v.bookingMode;
+      $("schSlotMinutes").value = String(v.slotMinutes);
+      $("schSlotCapacity").value = v.slotCapacity;
+      $("schDailyCap").value = v.dailyCap;
+      const dis = schReadOnly();
+      ["schMode", "schSlotMinutes", "schSlotCapacity", "schDailyCap", "schLeaveDate", "schLeaveNote"].forEach((id) => { const n = $(id); if (n) n.disabled = dis; });
+      $("schSave").disabled = dis;
+      $("schLeaveAdd").disabled = dis;
+      renderSchDays(v.hours);
+      renderSchLeaves(v.leaves);
+      $("schStatus").textContent = (v.hours && v.hours.length) ? ""
+        : "No hours saved for this doctor yet: bookings are open at any hour and only the capacity rule applies.";
+    }
+
+    function loadSchDoctor() {
+      if (!schDoctorId) return;
+      schShowAlert("");
+      authJson(schUrl("/" + schDoctorId + "/schedule"))
+        .then(fillSchForm)
+        .catch((e) => schShowAlert("Could not load this doctor's schedule (HTTP " + e.status + ")."));
+    }
+
+    window.__loadSchedules = function () {
+      if (!isStaffMode()) return;
+      authJson(schUrl(""))
+        .then((list) => {
+          schDoctors = Array.isArray(list) ? list : [];
+          const sel = $("schDoctor");
+          sel.innerHTML = schDoctors.map((d) => '<option value="' + d.id + '">' + esc(d.name) + (d.department ? " · " + esc(d.department) : "") + "</option>").join("");
+          if (!schDoctors.length) { schShowAlert("No doctors found for this hospital yet."); return; }
+          if (!schDoctors.some((d) => String(d.id) === String(schDoctorId))) schDoctorId = schDoctors[0].id;
+          sel.value = String(schDoctorId);
+          loadSchDoctor();
+        })
+        .catch((e) => schShowAlert("Could not load the doctor list (HTTP " + e.status + ")."));
+    };
+
+    $("schDoctor").addEventListener("change", () => { schDoctorId = $("schDoctor").value; loadSchDoctor(); });
+    $("schSave").addEventListener("click", () => {
+      if (!schDoctorId || schReadOnly()) return;
+      const hours = [];
+      for (let dow = 1; dow <= 7; dow++) {
+        if (!$("schDayOn" + dow) || !$("schDayOn" + dow).checked) continue;
+        const a = $("schDayA" + dow).value, b = $("schDayB" + dow).value;
+        if (a && b) hours.push({ dayOfWeek: dow, startTime: a, endTime: b });
+        const c = $("schDayC" + dow).value, dd = $("schDayD" + dow).value;
+        if (c && dd) hours.push({ dayOfWeek: dow, startTime: c, endTime: dd });
+      }
+      const body = {
+        bookingMode: $("schMode").value,
+        slotMinutes: Number($("schSlotMinutes").value),
+        slotCapacity: Number($("schSlotCapacity").value),
+        dailyCap: Number($("schDailyCap").value),
+        hours: hours
+      };
+      authJson(schUrl("/" + schDoctorId + "/schedule"), { method: "PUT", body: JSON.stringify(body) })
+        .then((v) => { fillSchForm(v); $("schStatus").textContent = "Saved. The agent books this doctor under these rules from now on."; })
+        .catch((e) => schShowAlert("Could not save (HTTP " + e.status + "). Check the values: each window must end after it starts."));
+    });
+    $("schLeaveAdd").addEventListener("click", () => {
+      if (!schDoctorId || schReadOnly()) return;
+      const date = $("schLeaveDate").value;
+      if (!date) { schShowAlert("Pick a leave date first."); return; }
+      authJson(schUrl("/" + schDoctorId + "/leaves"), { method: "POST", body: JSON.stringify({ date: date, note: $("schLeaveNote").value || null }) })
+        .then((v) => { schCurrent = v; renderSchLeaves(v.leaves); $("schStatus").textContent = "Leave day added."; schShowAlert(""); })
+        .catch((e) => schShowAlert("Could not add the leave day (HTTP " + e.status + ")."));
+    });
+
     let staffListCache = [];
     let staffConfirmId = null;
     function staffAlert(msg, kind) {
