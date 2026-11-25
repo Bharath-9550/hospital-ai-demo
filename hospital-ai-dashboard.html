@@ -197,6 +197,7 @@
         font-family:"IBM Plex Mono",monospace; font-size:13px; font-weight:600; background:var(--surface-3);
         border:1px solid var(--line); border-radius:8px; padding:5px 9px; flex:none; min-width:76px; text-align:center;
       }
+      .time-badge .tb-date{display:block; font-size:10.5px; font-weight:500; color:var(--ink-2); margin-top:1px; white-space:nowrap}
       .empty-note{padding:22px 8px; text-align:center; color:var(--ink-2); font-size:14px}
 
       /* ---------- Activity feed ---------- */
@@ -1808,12 +1809,12 @@
         else if (!readOnly && a.queue === "consult") action = '<button class="btn small" data-appt-action="' + a.id + '">Complete visit</button>';
         const fresh = a.fresh ? " fresh" : ""; delete a.fresh;
         return '<div class="row' + fresh + '">' +
-          '<div class="time-badge">' + a.time + "</div>" +
+          '<div class="time-badge">' + a.time + (a.dateWord ? '<span class="tb-date">' + a.dateWord + "</span>" : "") + "</div>" +
           '<div class="avatar">' + initials(a.patient) + "</div>" +
           '<div class="row-main"><div class="row-title">' + esc(a.patient) +
           ' <span class="pill tag">' + a.type + "</span>" + (a.priority === "Urgent" ? ' <span class="pill bad">Urgent</span>' : "") + "</div>" +
           '<div class="row-sub">' + esc(a.doctor) + " · " + esc(a.dept) + " — " + esc(a.reason) + "</div>" +
-          '<div style="font-size:12px; color:var(--ink-2); margin-top:3px">Token <strong class="mono" style="color:var(--ink)">' + a.token + "</strong> · Booked via " + a.channel + " · Reminder: " + a.reminder + (a.dateWord ? " · " + a.dateWord : "") + "</div></div>" +
+          '<div style="font-size:12px; color:var(--ink-2); margin-top:3px">Token <strong class="mono" style="color:var(--ink)">' + a.token + "</strong> · Booked via " + a.channel + " · Reminder: " + a.reminder + "</div></div>" +
           '<div class="row-side">' + QUEUE_PILL[a.queue] +
           '<div class="mono" style="font-size:12.5px; margin:6px 0 2px">' + billText(a) + "</div>" +
           (action || '<div class="row-sub">' + (a.status === "completed" ? "Visit complete" : a.status === "no-show" ? "Rebooking message sent" : "") + "</div>") +
@@ -1825,7 +1826,7 @@
     function renderUpcoming() {
       const up = state.appointments.filter((a) => a.status === "upcoming").sort((x, y) => x.timeMins - y.timeMins).slice(0, 4);
       $("upcomingList").innerHTML = up.length ? up.map((a) =>
-        '<div class="row"><div class="time-badge">' + a.time + '</div><div class="avatar">' + initials(a.patient) + '</div><div class="row-main"><div class="row-title">' + esc(a.patient) + '</div><div class="row-sub">' + esc(a.doctor) + " · " + esc(a.reason) + '</div></div><div class="row-side">' + QUEUE_PILL[a.queue] + '<div class="row-sub" style="margin-top:4px">Token ' + a.token + "</div></div></div>").join("")
+        '<div class="row"><div class="time-badge">' + a.time + (a.dateWord ? '<span class="tb-date">' + a.dateWord + "</span>" : "") + '</div><div class="avatar">' + initials(a.patient) + '</div><div class="row-main"><div class="row-title">' + esc(a.patient) + '</div><div class="row-sub">' + esc(a.doctor) + " · " + esc(a.reason) + '</div></div><div class="row-side">' + QUEUE_PILL[a.queue] + '<div class="row-sub" style="margin-top:4px">Token ' + a.token + "</div></div></div>").join("")
         : '<div class="empty-note">No more appointments today.</div>';
     }
     function apptAction(id) {
@@ -2973,16 +2974,18 @@
     window.__expireSession = expireSession;
     function doSignOut() {
       const token = AUTH.token;
-      const finish = () => {
-        clearSession();
-        $("staffHeader").classList.remove("show");
-        const pw = $("loginPassword"); if (pw) pw.value = "";
-        showGate("You have signed out. Sign in again whenever you're ready.", "ok");
-      };
+      /* QA BUG-021: clear the local session and screen FIRST. The server
+         call below only revokes the token; it must never delay sign-out
+         (a sleeping backend previously held the signed-in screen for up
+         to 30 seconds, and a failed call left private data visible). */
+      clearSession();
+      $("staffHeader").classList.remove("show");
+      const pw = $("loginPassword"); if (pw) pw.value = "";
+      showGate("You have signed out. Sign in again whenever you're ready.", "ok");
       if (token) {
         apiFetch(API_BASE + "/api/auth/logout", { method: "POST", headers: { Authorization: "Bearer " + token } }, 30000)
-          .then(finish).catch(finish);
-      } else finish();
+          .catch(() => {});
+      }
     }
     /* The login POST itself wakes a sleeping free-tier service, so there
        is no separate wake-up gate in front of it (the previous version
