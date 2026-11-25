@@ -1005,6 +1005,19 @@
               <p>From sample collection to the patient's WhatsApp — tracked at every step</p>
             </div>
             <div class="live-note-bar" id="liveNote-reports"></div>
+            <div class="card" id="reportUploadCard" style="display:none; margin-bottom:14px">
+              <h3 style="margin-top:0">Upload a report</h3>
+              <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end">
+                <label style="flex:1; min-width:170px; font-size:13px">Patient
+                  <select id="repPatient" style="width:100%; margin-top:4px"></select></label>
+                <label style="flex:1; min-width:150px; font-size:13px">Test name
+                  <input id="repTest" type="text" placeholder="e.g. CBC, Lipid Panel" style="width:100%; margin-top:4px"></label>
+                <label style="flex:1; min-width:190px; font-size:13px">File (PDF, JPEG or PNG, up to 5 MB)
+                  <input id="repFile" type="file" accept=".pdf,.jpg,.jpeg,.png" style="width:100%; margin-top:4px"></label>
+                <button class="btn" id="repUploadBtn" type="button">Upload report</button>
+              </div>
+              <p style="margin:8px 0 0; font-size:12.5px; color:var(--ink-2)">Signed-in staff only. The patient sees the report in the app under My reports as soon as it uploads, and can download it from there.</p>
+            </div>
             <div class="kpis">
               <div class="kpi amber"><div class="kpi-label">Reports this week</div><div class="kpi-num" id="repStatWeek">34</div><div class="kpi-detail">across pathology &amp; radiology</div></div>
               <div class="kpi"><div class="kpi-label">Ready right now</div><div class="kpi-num" id="repStatReady">3</div><div class="kpi-detail">signed off by the pathologist</div></div>
@@ -1613,6 +1626,7 @@
       if (id === "staff" && !(window.__authUser && window.__authUser.role === "ADMIN")) id = "overview";
       if (id === "staff" && typeof window.__loadStaffList === "function") window.__loadStaffList();
       if (id === "schedules" && typeof window.__loadSchedules === "function") window.__loadSchedules();
+      if (id === "reports" && typeof window.__loadReportTools === "function") window.__loadReportTools();
       currentPage = id;
       document.querySelectorAll(".page").forEach((p) => p.classList.toggle("active", p.id === "page-" + id));
       document.querySelectorAll(".nav-item").forEach((n) => n.classList.toggle("active", n.dataset.page === id));
@@ -1942,7 +1956,9 @@
         const fresh = r.fresh ? " fresh" : ""; delete r.fresh;
         return '<div class="row' + fresh + '"><div class="avatar amber">' + initials(r.patient) + '</div><div class="row-main"><div class="row-title">' + esc(r.test) + '</div><div class="row-sub">' + esc(r.patient) + " · ordered by " + esc(r.by) + " · " + r.when + (r.stuck ? ' · <span style="color:var(--coral)">' + esc(r.stuckWhy) + "</span>" : "") + '</div></div>' +
           '<div class="row-side"><div style="display:flex; justify-content:flex-end; margin-bottom:6px">' + pipe + "</div>" + pill +
-          (r.stuck && !reportsReadOnly ? ' <button class="btn small" data-retry="' + esc(r.patient) + '">Retry delivery</button>' : "") + "</div></div>";
+          (r.stuck && !reportsReadOnly ? ' <button class="btn small" data-retry="' + esc(r.patient) + '">Retry delivery</button>' : "") +
+          (r.id && r.hasFile ? ' <button class="btn small" data-report-download="' + r.id + '">Download</button>' : "") +
+          (r.id && r.stage === 2 && !reportsReadOnly ? ' <button class="btn small" data-report-delivered="' + r.id + '">Mark delivered</button>' : "") + "</div></div>";
       }).join("");
       $("reportList").querySelectorAll("[data-retry]").forEach((b) => b.addEventListener("click", () => {
         if (typeof window.__liveRetry === "function" && window.__liveRetry()) return;
@@ -2446,9 +2462,72 @@
         };
       });
     }
+    /* ---------- Reports lesson (Nov 25, 2026): staff upload + file actions ----------
+       The upload goes by raw fetch on purpose: apiFetch forces a JSON
+       content type whenever a body exists, which would break the
+       multipart form (the browser must set the boundary itself).
+       Staff mode only; the server enforces the same rules regardless. */
+    window.__loadReportTools = function () {
+      const card = document.getElementById("reportUploadCard");
+      if (!card) return;
+      const canUpload = isStaffMode() && !isDoctor();
+      card.style.display = canUpload ? "" : "none";
+      if (!canUpload) return;
+      authJson(privBase() + "/patients", {}, 60000).then((list) => {
+        const sel = document.getElementById("repPatient");
+        if (sel) sel.innerHTML = (list || []).map((pt) => '<option value="' + pt.id + '">' + esc(pt.name || pt.phone || ("Patient " + pt.id)) + "</option>").join("");
+      }).catch(() => {});
+    };
+    document.addEventListener("click", async (e) => {
+      const dl = e.target.closest("[data-report-download]");
+      const dv = e.target.closest("[data-report-delivered]");
+      const up = e.target.closest("#repUploadBtn");
+      if (dl) {
+        try {
+          const r = await authFetch(privBase() + "/reports/" + dl.dataset.reportDownload + "/file", {}, 120000);
+          if (!r.ok) throw new Error("HTTP " + r.status);
+          const blob = await r.blob();
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob); a.download = "report-" + dl.dataset.reportDownload;
+          document.body.appendChild(a); a.click(); a.remove();
+          setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+        } catch (err) { toast("Download failed", "The report file could not be fetched."); }
+      }
+      if (dv) {
+        try {
+          const r = await authFetch(privBase() + "/reports/" + dv.dataset.reportDelivered + "/delivered", { method: "POST" }, 60000);
+          if (!r.ok) throw new Error("HTTP " + r.status);
+          toast("Marked delivered", "The patient now sees this report as Delivered.");
+          loadLive("report-delivered", true);
+        } catch (err) { toast("Could not mark delivered", "Please try again."); }
+      }
+      if (up) {
+        const pid = document.getElementById("repPatient").value;
+        const test = document.getElementById("repTest").value.trim();
+        const file = document.getElementById("repFile").files[0];
+        if (!pid || !file) { toast("Pick a patient and a file", "Both are needed to upload a report."); return; }
+        const fd = new FormData();
+        fd.append("file", file);
+        fd.append("testName", test || file.name);
+        up.disabled = true; up.textContent = "Uploading\u2026";
+        try {
+          const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), 120000);
+          const r = await fetch(API_BASE + "/api/hospitals/" + AUTH.user.hospitalId + "/reports/patients/" + pid,
+            { method: "POST", headers: { Authorization: "Bearer " + AUTH.token }, body: fd, signal: ctl.signal });
+          clearTimeout(to);
+          if (!r.ok) throw new Error("HTTP " + r.status);
+          toast("Report uploaded", (test || file.name) + " is now in the patient\u2019s app under My reports.");
+          document.getElementById("repFile").value = ""; document.getElementById("repTest").value = "";
+          loadLive("report-upload", true);
+        } catch (err) { toast("Upload failed", "Check the file (PDF, JPEG or PNG, up to 5 MB) and try again."); }
+        up.disabled = false; up.textContent = "Upload report";
+      }
+    });
+
     function mapReports(reps) {
       const stageMap = { ORDERED: 0, SAMPLE_COLLECTED: 1, READY: 2, DELIVERED: 3, DELIVERY_FAILED: 2 };
       return reps.map((r) => ({
+        id: r.id, patientId: r.patient ? r.patient.id : null, hasFile: !!r.hasFile,
         patient: r.patient ? r.patient.name : "—", test: r.testName || "Lab report", by: "Lab",
         when: "status per live API", stage: stageMap[r.status] != null ? stageMap[r.status] : 0,
         stuck: r.status === "DELIVERY_FAILED" || r.status === "READY",

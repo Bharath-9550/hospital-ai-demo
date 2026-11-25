@@ -2451,6 +2451,9 @@
     <div class="pa-ok" id="ppOk"></div>
     <button class="pa-btn" id="ppSave">Save changes</button>
 
+    <label class="pa-label">My reports</label>
+    <div id="ppReports"><p class="pa-note">Loading your reports\u2026</p></div>
+
     <label class="pa-label" for="ppPass">Set or change password</label>
     <input id="ppPass" class="pa-input" type="password" placeholder="New password (6+ characters)">
     <button class="pa-btn pa-ghost" id="ppPassBtn">Save password</button>
@@ -2768,11 +2771,56 @@
       ppGender = p.gender || '';
       ppMarkGender();
       err('ppErr', ''); $('ppOk').textContent = '';
+      loadReports(sess.token);
       $('paProfile').hidden = false;
     }).catch(function () {
       clearSess();
       showGate('phone');
     });
+  }
+  function escHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  /* Reports lesson (Nov 25, 2026): the patient's own reports, fetched on
+     the session path. The list shows metadata only; the file itself comes
+     down as a blob through the same session, never a public link. */
+  function loadReports(token) {
+    var box = $('ppReports');
+    if (!box) return;
+    box.innerHTML = '<p class="pa-note">Loading your reports\u2026</p>';
+    api('/reports', { headers: { 'Authorization': 'Bearer ' + token } }).then(function (list) {
+      if (!list || !list.length) {
+        box.innerHTML = '<p class="pa-note">No reports yet. When the clinic uploads a report for you, it appears here.</p>';
+        return;
+      }
+      box.innerHTML = list.map(function (r) {
+        var label = r.status === 'DELIVERED' ? 'Delivered' : (r.status === 'READY' ? 'Ready for you' : 'In progress');
+        var btn = r.hasFile ? '<button class="pa-btn pa-ghost" style="margin-top:8px;padding:10px" data-report="' + r.id + '">Download</button>' : '';
+        return '<div style="text-align:left;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.3);border-radius:14px;padding:12px 14px;margin-top:8px">' +
+          '<div style="font-weight:700;font-size:15.5px">' + escHtml(r.testName || 'Lab report') + '</div>' +
+          '<div style="font-size:13px;opacity:.85;margin-top:2px">' + label + (r.fileName ? ' \u00b7 ' + escHtml(r.fileName) : '') + '</div>' + btn + '</div>';
+      }).join('');
+      box.querySelectorAll('[data-report]').forEach(function (b) {
+        b.addEventListener('click', function () { downloadReport(token, b.getAttribute('data-report'), b); });
+      });
+    }).catch(function () {
+      box.innerHTML = '<p class="pa-note">Could not load your reports right now.</p>';
+    });
+  }
+  function downloadReport(token, id, btn) {
+    btn.disabled = true; var old = btn.textContent; btn.textContent = 'Downloading\u2026';
+    fetch(AUTH + '/reports/' + id + '/file', { headers: { 'Authorization': 'Bearer ' + token } }).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.blob();
+    }).then(function (blob) {
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = 'report-' + id;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+    }).catch(function () { /* the button state restores below */ })
+      .finally(function () { btn.disabled = false; btn.textContent = old; });
   }
   $('paLogout').addEventListener('click', openProfile);
   $('ppClose').addEventListener('click', function () { $('paProfile').hidden = true; });
