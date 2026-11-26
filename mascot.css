@@ -1,0 +1,17 @@
+/* Shared decorative login mascot */
+:is(#paBot,#dbBot){position:fixed;left:0;top:0;width:108px;z-index:1200;pointer-events:none;font-family:system-ui,sans-serif;}
+#paBot{z-index:5}
+:is(#paBot,#dbBot)[hidden]{display:none!important}
+:is(#paBot,#dbBot) :is(.pa-bot-stage,.db-bot-stage){position:relative;aspect-ratio:1;transform-origin:50% 92%;transform:rotate(var(--mascot-lean,0deg));transition:transform .45s ease;}
+:is(#paBot,#dbBot) .mascot-pose{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;visibility:hidden;animation:mascot-breathe 4s ease-in-out infinite;transform-origin:50% 92%;}
+:is(#paBot,#dbBot)[data-state=privacy] .mascot-pose,:is(#paBot,#dbBot)[data-state=error] .mascot-pose{animation:none;}
+:is(#paBot,#dbBot)[data-state=hello] .mascot-pose{animation:mascot-greet .9s ease-in-out 2;}
+:is(#paBot,#dbBot) :is(.pa-bot-glow,.db-bot-glow){display:none;}
+:is(#paBot,#dbBot) :is(.pa-bot-bubble,.db-bot-bubble){position:absolute;left:50%;bottom:100%;transform:translateX(-50%);width:max-content;max-width:170px;overflow-wrap:anywhere;white-space:normal;text-align:center;background:#fff;color:#17323a;border:1px solid #dcebe6;padding:6px 10px;border-radius:12px;font-size:12px;font-weight:600;opacity:0;transition:opacity .2s;z-index:2;box-shadow:0 4px 12px #163b3520;}
+:is(#paBot,#dbBot) .mascot-speech{opacity:1;}
+@keyframes mascot-breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.018,.99)}}
+@keyframes mascot-greet{0%,100%{transform:rotate(0)}50%{transform:rotate(-3deg)}}
+@media(prefers-reduced-motion:reduce){:is(#paBot,#dbBot),:is(#paBot,#dbBot) *{animation:none!important;transition:none!important;}}
+@media(max-width:940px){#paLogin .pa-card{max-height:calc(100dvh - 168px);}}
+@media(max-height:860px){#paLogin .pa-card{max-height:calc(100dvh - 200px);}}
+:is(#paBot,#dbBot) .mascot-pose[style*="visibility: hidden"]{animation:none!important;}
