@@ -2413,6 +2413,9 @@
   #paBot .pa-bot-bubble { position:absolute; left:50%; bottom:calc(100% + 8px); transform:translateX(-50%) scale(.85); background:#ffffff; color:#17323a; border:1px solid #dcebe6; padding:8px 13px; border-radius:14px; font-size:13.5px; font-weight:700; white-space:nowrap; box-shadow:0 10px 22px rgba(8,60,66,.18); opacity:0; transition:opacity .25s ease, transform .25s ease; z-index:6; }
   #paBot .pa-bot-bubble::after { content:""; position:absolute; left:50%; bottom:-6px; margin-left:-6px; width:12px; height:12px; background:#ffffff; border-right:1px solid #dcebe6; border-bottom:1px solid #dcebe6; transform:rotate(45deg); }
   #paBot .pa-bot-bubble.pa-show { opacity:1; transform:translateX(-50%) scale(1); }
+  #paBot.pa-bubble-side .pa-bot-bubble { bottom:auto; top:14%; left:auto; right:calc(100% + 10px); transform:scale(.85); }
+  #paBot.pa-bubble-side .pa-bot-bubble.pa-show { transform:scale(1); }
+  #paBot.pa-bubble-side .pa-bot-bubble::after { left:auto; right:-6px; bottom:auto; top:50%; margin:-6px 0 0 0; border:none; border-top:1px solid #dcebe6; border-right:1px solid #dcebe6; }
   #paBot.pa-bot-happy #paBotImg { animation:none; }
   @keyframes paBotJump { 0%, 100% { transform:translateY(0); } 40% { transform:translateY(-11px); } }
   #paBot.pa-bot-wave #paBotImg { animation:none; }
@@ -3106,7 +3109,7 @@
     var bimg = new Image();
     bimg.onload = function () { off.getContext('2d').drawImage(bimg, 0, 0, 480, 480); baseReady = true; };
     bimg.src = SRC.normal;
-    var EYES = [[187, 230], [291, 232]], ER = 38;
+    var EYES = [[187, 230], [291, 232]], ER = 44;
     var gx = 0, gy = 0, tx = 0, ty = 0, lastPtr = 0, nextWander = 0;
     window.addEventListener('pointermove', function (e) {
       lastPtr = Date.now();
@@ -3116,14 +3119,14 @@
       var dist = Math.sqrt(dx * dx + dy * dy);
       if (dist < 1) return;
       var f = Math.min(1, dist / 220);
-      tx = (dx / dist) * 11 * f; ty = (dy / dist) * 8 * f;
+      tx = (dx / dist) * 17 * f; ty = (dy / dist) * 12 * f;
     }, { passive: true });
     (function gazeLoop() {
       requestAnimationFrame(gazeLoop);
       if (!baseReady || face !== 'normal' || !gate || gate.hidden) { bot.classList.remove('pa-gaze'); return; }
       var now = Date.now();
       if (now - lastPtr > 3500 && now > nextWander) {
-        tx = (Math.random() * 2 - 1) * 9; ty = (Math.random() * 2 - 1) * 6;
+        tx = (Math.random() * 2 - 1) * 13; ty = (Math.random() * 2 - 1) * 9;
         if (Math.random() < 0.3) { tx = 0; ty = 0; }
         if (Math.random() < 0.22) { eyeScaleTarget = Math.random() < 0.5 ? 1.15 : 0.86; setTimeout(function () { eyeScaleTarget = 1; }, 1500); }
         nextWander = now + (busy ? 700 : 2400 + Math.random() * 1600);
@@ -3163,6 +3166,7 @@
     var name = '';
     var dt = document.getElementById('paDoneText');
     if (dt) { var mm = /Welcome,\s*(.+?)\./.exec(dt.textContent || ''); if (mm) name = mm[1]; }
+    bubblePlace();
     bubble.textContent = name ? ('Welcome, ' + name + '!') : 'Welcome!';
     bubble.classList.add('pa-show');
     clearTimeout(bubbleTimer);
@@ -3212,6 +3216,7 @@
      face, and moments of big eyes (driven through eyeScaleTarget).
      Gestures never interrupt typing, verifying, an error, or the
      welcome celebration, and they only play on the first screen. */
+  function bubblePlace() { var t = bot.getBoundingClientRect().top; bot.classList.toggle('pa-bubble-side', t < 56); }
   var gesturing = false;
   function gesture(kind) {
     if (reduced || celebrating || busy || gesturing) return;
@@ -3222,6 +3227,7 @@
     gesturing = true;
     if (kind === 'hello') {
       setFace('wave');
+      bubblePlace();
       bubble.textContent = 'Hi!';
       bubble.classList.add('pa-show');
       setTimeout(function () {

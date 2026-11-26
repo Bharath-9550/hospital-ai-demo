@@ -3918,7 +3918,7 @@
     var bimg = new Image();
     bimg.onload = function () { off.getContext('2d').drawImage(bimg, 0, 0, 480, 480); baseReady = true; };
     bimg.src = SRC.normal;
-    var EYES = [[187, 230], [291, 232]], ER = 38;
+    var EYES = [[187, 230], [291, 232]], ER = 44;
     var gx = 0, gy = 0, tx = 0, ty = 0, lastPtr = 0, nextWander = 0;
     window.addEventListener('pointermove', function (e) {
       lastPtr = Date.now();
@@ -3928,14 +3928,14 @@
       var dist = Math.sqrt(dx * dx + dy * dy);
       if (dist < 1) return;
       var f = Math.min(1, dist / 220);
-      tx = (dx / dist) * 11 * f; ty = (dy / dist) * 8 * f;
+      tx = (dx / dist) * 17 * f; ty = (dy / dist) * 12 * f;
     }, { passive: true });
     (function gazeLoop() {
       requestAnimationFrame(gazeLoop);
       if (!baseReady || face !== 'normal' || greeted || !gateShown()) { bot.classList.remove('db-gaze'); return; }
       var now = Date.now();
       if (now - lastPtr > 3500 && now > nextWander) {
-        tx = (Math.random() * 2 - 1) * 9; ty = (Math.random() * 2 - 1) * 6;
+        tx = (Math.random() * 2 - 1) * 13; ty = (Math.random() * 2 - 1) * 9;
         if (Math.random() < 0.3) { tx = 0; ty = 0; }
         if (Math.random() < 0.22) { eyeScaleTarget = Math.random() < 0.5 ? 1.15 : 0.86; setTimeout(function () { eyeScaleTarget = 1; }, 1500); }
         nextWander = now + 2400 + Math.random() * 1600;
