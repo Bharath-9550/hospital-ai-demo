@@ -15,3 +15,6 @@
 @media(max-width:940px){#paLogin .pa-card{max-height:calc(100dvh - 168px);}}
 @media(max-height:860px){#paLogin .pa-card{max-height:calc(100dvh - 200px);}}
 :is(#paBot,#dbBot) .mascot-pose[style*="visibility: hidden"]{animation:none!important;}
+/* More visible, calm idle movement and an opening greeting. */
+@keyframes mascot-breathe{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-3px) scale(1.025,1.015)}}
+@keyframes mascot-greet{0%,100%{transform:rotate(0)}25%{transform:translateY(-5px) rotate(-5deg)}75%{transform:translateY(-3px) rotate(4deg)}}

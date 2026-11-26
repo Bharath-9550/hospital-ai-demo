@@ -8,6 +8,7 @@
   const stage = bot.querySelector('.'+p+'-bot-stage'), bubble = $(p+'BotBubble');
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
   const assets = {}, cleanups = [], timers = new Set();
+  let gazeRAF=0, gx=0, gy=0, tx=0, ty=0, nextBlink=0, blinkStart=0, lastMove=0, eyeCanvas=null, eyeAtlas=null, eyeOriginal=null, lastTile=-1, helloAttempted=false, interacted=false;
   let state = '', epoch = 0, frame = 0, pose = 'normal', greeted = false, wasOpen = false, pending = false, lastRect = null;
   const shown = el => !!el && !el.closest('[hidden]') && el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden';
   const listen = (el, event, fn, opts) => { if (!el) return; el.addEventListener(event,fn,opts); cleanups.push(()=>el.removeEventListener(event,fn,opts)); };
@@ -15,8 +16,9 @@
   function cancel() { epoch++; timers.forEach(clearTimeout); timers.clear(); }
   function setPose(name) {
     pose = name;
+    if(eyeCanvas) { eyeCanvas.style.visibility=name==='normal'?'visible':'hidden'; eyeOriginal.style.visibility='hidden'; }
     const selected = assets[name]?.ready ? name : 'normal';
-    Object.entries(assets).forEach(([key,a])=>{a.img.style.visibility=key===selected?'visible':'hidden';});
+    Object.entries(assets).forEach(([key,a])=>{a.img.style.visibility=key===selected?'visible':'hidden'; if(key==='normal'&&eyeCanvas) a.img.style.visibility='hidden';});
   }
   const original = $(p+'BotImg');
   ['normal','shy','happy','wave','concerned'].forEach(name=>{
@@ -28,6 +30,31 @@
     img.decode().then(()=>{a.ready=true;setPose(pose);}).catch(()=>{if(name==='normal') bot.dataset.assetError='true';});
   });
   stage.querySelector('canvas')?.remove();
+  // A local, pre-rendered warp replaces the original eye pixels, not overlays them.
+  const atlas=new Image(); atlas.src='bot-eye-motion.webp';
+  Promise.all([atlas.decode(),original.decode()]).then(()=>{
+    eyeOriginal=original; eyeAtlas=atlas;
+    eyeCanvas=document.createElement('canvas'); eyeCanvas.width=480; eyeCanvas.height=480;
+    eyeCanvas.className='mascot-pose'; eyeCanvas.setAttribute('aria-hidden','true');
+    stage.append(eyeCanvas); drawEyes(12); setPose(pose); startEyes();
+  }).catch(()=>{});
+  function drawEyes(tile){
+    if(!eyeCanvas||tile===lastTile)return; lastTile=tile;
+    const c=eyeCanvas.getContext('2d'); c.clearRect(0,0,480,480);c.drawImage(original,0,0,480,480);
+    c.clearRect(140,190,200,80); c.drawImage(eyeAtlas,(tile%5)*200,Math.floor(tile/5)*80,200,80,140,190,200,80);
+  }
+  function stopEyes(){if(gazeRAF)cancelAnimationFrame(gazeRAF);gazeRAF=0;blinkStart=0;gx=gy=tx=ty=0;drawEyes(12);}
+  function startEyes(){if(gazeRAF||!eyeCanvas||motion.matches||document.hidden||!['idle','typing'].includes(state))return;nextBlink=performance.now()+1800+Math.random()*1800;lastMove=performance.now();gazeRAF=requestAnimationFrame(eyeLoop);}
+  function eyeLoop(t){
+    gazeRAF=0;if(motion.matches||document.hidden||!['idle','typing'].includes(state)){stopEyes();return;}
+    if(t-lastMove>3500){tx=(Math.random()-.5)*1.5;ty=(Math.random()-.5);lastMove=t;}
+    gx+=(tx-gx)*.14;gy+=(ty-gy)*.14;
+    let tile=(Math.round(Math.max(-1,Math.min(1,gy))*2)+2)*5+Math.round(Math.max(-1,Math.min(1,gx))*2)+2;
+    if(t>=nextBlink&&!blinkStart)blinkStart=t;
+    if(blinkStart){const d=t-blinkStart;if(d<45)tile=25;else if(d<90)tile=26;else if(d<150)tile=27;else if(d<195)tile=26;else if(d<240)tile=25;else{blinkStart=0;nextBlink=t+2700+Math.random()*2300;}}
+    drawEyes(tile);gazeRAF=requestAnimationFrame(eyeLoop);
+  }
+
   function say(text) { bubble.textContent=text; bubble.classList.toggle('mascot-speech',!!text); queuePlace(); }
   function place() {
     frame=0;
@@ -52,15 +79,16 @@
   function queuePlace(){if(!frame && !bot.hidden) frame=requestAnimationFrame(place);}
   function transition(next){
     if(next===state) {queuePlace();return;}
-    cancel(); state=next; bot.dataset.state=next; bot.hidden=next==='hidden';
+    cancel(); stopEyes(); state=next; bot.dataset.state=next; bot.hidden=next==='hidden';
     stage.style.setProperty('--mascot-lean','0deg'); say('');
     if(next==='hidden') {if(frame) cancelAnimationFrame(frame);frame=0;return;}
     const poses={idle:'normal',typing:'normal',privacy:'shy',verifying:'normal',error:'concerned',hello:'wave',success:'happy'};
     setPose(poses[next]||'normal');
-    if(next==='hello'){say('Hi!');later(()=>{greeted=true;sync();},1800);}
+    if(next==='hello'){helloAttempted=true;say('Hi!');later(()=>{greeted=true;sync();},1800);}
     if(next==='verifying') say('One moment…');
     if(next==='success'){say(patient?'Welcome!':'Welcome back!');if(!patient)later(()=>transition('hidden'),3000);}
-    queuePlace();
+    queuePlace();startEyes();
+    if(next==='idle'&&!motion.matches)later(()=>{if(state==='idle'&&!interacted){greeted=false;helloAttempted=false;sync();}},18000);
   }
   function sync(){
     if(document.hidden){transition('hidden');return;}
@@ -69,15 +97,15 @@
       if(!patient && wasOpen && lastRect && window.__authUser){wasOpen=false;transition('success');return;}
       wasOpen=false;greeted=false;if(state!=='success'||patient)transition('hidden');return;
     }
-    if(!wasOpen){greeted=false;wasOpen=true;}
+    if(!wasOpen){greeted=false;helloAttempted=false;interacted=false;wasOpen=true;}
     const active=document.activeElement;
     const screen=patient?gate.querySelector('[data-pa]:not([hidden])')?.dataset.pa:'';
     const busy=patient?(screen==='verifying'||(screen==='phone'&&$('paSend')?.disabled)):(shown($('authChecking'))||$('loginSubmit')?.disabled||$('mfaVerifyBtn')?.disabled);
     const errors=(patient?['paPhoneErr','paPassErr','paOtpErr','paNameErr','paSetPassErr']:['authAlert','mfaAlert']).some(id=>{const e=$(id);return shown(e)&&e.textContent.trim()&&!e.classList.contains('info')&&!e.classList.contains('ok');});
     const privacy=(patient&&screen==='pass')||(gate.contains(active)&&active.matches('input[type=password],input[autocomplete=one-time-code],input[autocomplete=current-password],input[autocomplete=new-password]'));
     const typing=gate.contains(active)&&active.matches('input,textarea,select');
-    if(busy||errors||privacy||typing||screen==='done'||(patient&&screen!=='phone'))greeted=true;
-    transition(busy?'verifying':errors?'error':privacy?'privacy':screen==='done'?'success':typing?'typing':!greeted&&!motion.matches?'hello':'idle');
+    if((busy&&interacted)||errors||privacy||(typing&&interacted)||screen==='done'||(patient&&screen!=='phone'))greeted=true;
+    transition(busy?'verifying':errors?'error':privacy?'privacy':screen==='done'?'success':!greeted&&(!helloAttempted||state==='hello')&&!motion.matches?'hello':typing&&interacted?'typing':'idle');
   }
   function schedule(){if(pending)return;pending=true;queueMicrotask(()=>{pending=false;sync();});}
   const observer=new MutationObserver(records=>{if(records.some(r=>!bot.contains(r.target)))schedule();});
@@ -87,9 +115,9 @@
   ['resize','scroll'].forEach(e=>listen(window,e,queuePlace,{passive:true}));
   listen(window,'load',queuePlace);listen(card,'animationend',queuePlace);listen(card,'transitionend',queuePlace);
   if(window.visualViewport){listen(visualViewport,'resize',queuePlace);listen(visualViewport,'scroll',queuePlace);}
-  ['focusin','focusout','input'].forEach(e=>listen(gate,e,schedule));
-  listen(document,'visibilitychange',sync);listen(motion,'change',()=>{greeted=true;sync();});
-  listen(window,'pointermove',e=>{if(motion.matches||!['idle','typing'].includes(state))return;const r=bot.getBoundingClientRect();stage.style.setProperty('--mascot-lean',Math.max(-3,Math.min(3,(e.clientX-r.left-r.width/2)/90))+'deg');},{passive:true});
+  ['focusin','focusout'].forEach(e=>listen(gate,e,schedule));listen(gate,'input',()=>{interacted=true;schedule();});listen(gate,'pointerdown',()=>{interacted=true;greeted=true;schedule();},{passive:true});
+  listen(document,'visibilitychange',sync);listen(motion,'change',()=>{greeted=true;if(motion.matches)stopEyes();sync();startEyes();});
+  listen(window,'pointermove',e=>{if(motion.matches||!['idle','typing'].includes(state))return;const r=bot.getBoundingClientRect();tx=Math.max(-1,Math.min(1,(e.clientX-r.left-r.width/2)/100));ty=Math.max(-1,Math.min(1,(e.clientY-r.top-r.height*.48)/100));lastMove=performance.now();stage.style.setProperty('--mascot-lean',Math.max(-3,Math.min(3,(e.clientX-r.left-r.width/2)/90))+'deg');},{passive:true});
   listen(window,'pagehide',()=>{cancel();transition('hidden');});listen(window,'pageshow',sync);
   // Available for SPA teardown if needed.
   bot.destroyMascot=()=>{cancel();transition('hidden');cleanups.forEach(fn=>fn());};
