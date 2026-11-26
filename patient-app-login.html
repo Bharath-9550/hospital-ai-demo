@@ -3048,7 +3048,7 @@
   var reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   var base = 'normal', face = 'normal', celebrating = false;
   var flashTimer = null, waveTimer = null, bubbleTimer = null, typeSafety = null;
-  var busy = false;
+  var busy = false, busySince = 0, holdUntil = 0;
 
   function place() {
     if (!card || (gate && gate.hidden)) return;
@@ -3072,19 +3072,21 @@
     if (document.visibilityState && document.visibilityState !== 'visible') return;
     bot.classList.add('pa-bot-hop');
     setTimeout(function () { bot.classList.remove('pa-bot-hop'); }, 680);
-  }, 8000);
+  }, 6000);
 
   function setFace(f) { stopBusy(); if (face === f) return; face = f; img.src = SRC[f]; }
-  function applyBase() { if (!celebrating) setFace(base); }
+  function applyBase() { if (!celebrating && Date.now() >= holdUntil) setFace(base); }
   function startBusy() {
     if (busy || celebrating || reduced) return;
-    busy = true;
+    busy = true; busySince = Date.now();
     bot.classList.add('pa-bot-busy');
     clearTimeout(typeSafety);
     typeSafety = setTimeout(stopBusy, 7000);
   }
   function stopBusy() {
     if (!busy) return;
+    var wait = 1200 - (Date.now() - busySince);
+    if (wait > 0) { clearTimeout(typeSafety); typeSafety = setTimeout(stopBusy, wait); return; }
     busy = false; clearTimeout(typeSafety);
     bot.classList.remove('pa-bot-busy');
     img.src = SRC[face];
@@ -3101,6 +3103,7 @@
 
   function flashConcerned() {
     if (celebrating) return;
+    holdUntil = Date.now() + 4000;
     setFace('concerned');
     clearTimeout(flashTimer);
     flashTimer = setTimeout(applyBase, 4000);
@@ -3111,7 +3114,9 @@
   });
 
   function celebrate() {
+    if (celebrating) return;
     celebrating = true;
+    holdUntil = 0;
     bot.classList.add('pa-bot-happy');
     var name = '';
     var dt = document.getElementById('paDoneText');
@@ -3119,7 +3124,7 @@
     bubble.textContent = name ? ('Welcome, ' + name + '!') : 'Welcome!';
     bubble.classList.add('pa-show');
     clearTimeout(bubbleTimer);
-    bubbleTimer = setTimeout(function () { bubble.classList.remove('pa-show'); }, 6000);
+    bubbleTimer = setTimeout(function () { bubble.classList.remove('pa-show'); }, 8000);
     var waves = 0;
     setFace('wave');
     bot.classList.add('pa-bot-wave');
@@ -3127,11 +3132,12 @@
     waveTimer = setInterval(function () {
       waves++;
       setFace(waves % 2 ? 'happy' : 'wave');
-      if (waves >= 12) { clearInterval(waveTimer); bot.classList.remove('pa-bot-wave'); img.style.transform = ''; setFace('happy'); }
+      if (waves >= 16) { clearInterval(waveTimer); bot.classList.remove('pa-bot-wave'); img.style.transform = ''; setFace('happy'); }
     }, 430);
   }
   function resetAll() {
     celebrating = false;
+    holdUntil = 0;
     clearInterval(waveTimer);
     bot.classList.remove('pa-bot-happy');
     bot.classList.remove('pa-bot-wave');
@@ -3151,6 +3157,11 @@
   watch('profile', function () { base = 'normal'; applyBase(); });
   watch('done', celebrate);
   watch('verifying', startBusy);
+  var doneTextEl = document.getElementById('paDoneText');
+  if (doneTextEl) new MutationObserver(function () {
+    var doneEl = document.querySelector('[data-pa="done"]');
+    if (doneEl && !doneEl.hidden && (doneTextEl.textContent || '').trim()) celebrate();
+  }).observe(doneTextEl, { childList: true, characterData: true, subtree: true });
   var sendBtn = document.getElementById('paSend');
   if (sendBtn) sendBtn.addEventListener('click', function () { startBusy(); });
   place();
