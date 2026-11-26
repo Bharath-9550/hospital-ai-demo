@@ -2281,11 +2281,154 @@
   #paProfile .pa-chip.pa-sel { background:#fff; color:#0b3b5e; }
   #paProfile .pa-phone { font-size:17px; font-weight:700; letter-spacing:.4px; padding:10px 0 2px; }
   #paProfile .pa-note { font-size:13px; opacity:.8; line-height:1.45; }
+
+  /* Warmth pass (Nov 25, 2026): calmer backdrop, the real heart logo, a
+     gentle entrance, small pops on the code boxes and the success check,
+     and a trust row, so the gate feels like a clinic that has you, not a
+     bare form. Presentation only; no behavior changes. */
+  #paLogin { background:radial-gradient(120% 90% at 50% 0%, #12647e 0%, #0b3b5e 52%, #072a44 100%); }
+  #paLogin .pa-blob { animation:paDrift 16s ease-in-out infinite alternate; }
+  #paLogin .pa-b2 { animation-duration:20s; animation-delay:-6s; }
+  #paLogin .pa-b3 { opacity:.7; animation-duration:13s; animation-delay:-3s; }
+  @keyframes paDrift { from { transform:translate(0,0) scale(1); } to { transform:translate(34px,26px) scale(1.08); } }
+  #paLogin .pa-card { background:rgba(255,255,255,.16); border-radius:30px; box-shadow:0 24px 60px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.35); animation:paRise .55s cubic-bezier(.22,.9,.26,1) both; }
+  @keyframes paRise { from { opacity:0; transform:translateY(16px) scale(.98); } to { opacity:1; transform:translateY(0) scale(1); } }
+  #paLogin .pa-screen:not([hidden]) { animation:paScreenIn .38s ease both; }
+  @keyframes paScreenIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+  #paLogin .pa-brand { width:78px; height:78px; margin:0 auto 10px; border-radius:23px; background:#fff; overflow:hidden; display:flex; align-items:center; justify-content:center; animation:paPulse 2.6s ease-out infinite; }
+  #paLogin .pa-brand img { width:100%; height:100%; object-fit:cover; display:block; animation:paBreathe 3.4s ease-in-out infinite alternate; }
+  @keyframes paPulse { 0% { box-shadow:0 12px 28px rgba(0,0,0,.3), 0 0 0 0 rgba(255,255,255,.45); } 70% { box-shadow:0 12px 28px rgba(0,0,0,.3), 0 0 0 18px rgba(255,255,255,0); } 100% { box-shadow:0 12px 28px rgba(0,0,0,.3), 0 0 0 0 rgba(255,255,255,0); } }
+  @keyframes paBreathe { from { transform:scale(1); } to { transform:scale(1.05); } }
+  #paLogin .pa-input:focus, #paLogin select.pa-input:focus, #paLogin select.pa-cc:focus { border-color:#7ee7c4; box-shadow:0 0 0 4px rgba(126,231,196,.25); background:rgba(255,255,255,.3); }
+  #paLogin .pa-btn { background:linear-gradient(180deg, #ffffff, #e9f7f1); transition:transform .12s ease; }
+  #paLogin .pa-btn:active { transform:scale(.98); }
+  #paLogin .pa-boxes input.pa-filled { animation:paPop .18s ease; }
+  @keyframes paPop { from { transform:scale(1.16); } to { transform:scale(1); } }
+  #paLogin .pa-check { animation:paCheckPop .55s cubic-bezier(.22,.9,.3,1.25) both; }
+  @keyframes paCheckPop { from { transform:scale(.4); opacity:0; } to { transform:scale(1); opacity:1; } }
+  #paLogin .pa-trust { margin-top:22px; padding-top:16px; border-top:1px solid rgba(255,255,255,.28); display:flex; gap:8px; justify-content:space-between; }
+  #paLogin .pa-trust span { flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; font-size:11.5px; line-height:1.35; color:rgba(255,255,255,.88); }
+  @media (prefers-reduced-motion: reduce) { #paLogin .pa-blob, #paLogin .pa-card, #paLogin .pa-screen:not([hidden]), #paLogin .pa-brand, #paLogin .pa-brand img, #paLogin .pa-boxes input.pa-filled, #paLogin .pa-check { animation:none; } }
+
+  /* Clean light theme (Nov 25, 2026): the glass look is gone at Bharath's
+     call. Solid white card on a soft flat background, dark ink text, solid
+     teal buttons, like a proper clinic app. Overrides the glass rules
+     above by coming later in the sheet; no behavior changes. */
+  #paLogin { background:#edf5f2; }
+  #paLogin .pa-blob { display:none; }
+  #paLogin .pa-card { background:#ffffff; border:1px solid #dcebe6; box-shadow:0 18px 44px rgba(8,60,66,.14); color:#17323a; }
+  #paLogin .pa-logo { color:#0b5563; opacity:1; }
+  #paLogin h1 { color:#0d2f38; }
+  #paLogin .pa-sub { color:#47636b; opacity:1; }
+  #paLogin .pa-te { color:#5d7d85; opacity:1; }
+  #paLogin .pa-label { color:#17323a; }
+  #paLogin .pa-input, #paLogin select.pa-input { background:#f4faf8; border:1px solid #c4ddd6; color:#17323a; color-scheme:light; }
+  #paLogin .pa-input::placeholder { color:#8aa5ad; }
+  #paLogin select.pa-cc { background:#f4faf8; border:1px solid #c4ddd6; color:#17323a; }
+  #paLogin .pa-input:focus, #paLogin select.pa-input:focus, #paLogin select.pa-cc:focus { border-color:#0e7c86; background:#ffffff; box-shadow:0 0 0 4px rgba(14,124,134,.15); }
+  #paLogin .pa-btn { background:#0b5563; color:#ffffff; box-shadow:0 10px 22px rgba(11,85,99,.28); }
+  #paLogin .pa-alt { color:#47636b; }
+  #paLogin .pa-link { color:#0b5563; }
+  #paLogin .pa-err { color:#b3261e; }
+  #paLogin .pa-boxes input { background:#f4faf8; border:1.5px solid #c4ddd6; color:#17323a; }
+  #paLogin .pa-boxes input:focus { background:#ffffff; border-color:#0e7c86; box-shadow:0 0 0 4px rgba(14,124,134,.15); }
+  #paLogin .pa-boxes input.pa-filled { background:#e2f2ee; border-color:#0e7c86; }
+  #paLogin .pa-demo { background:#fdf3e0; border:1px solid #f0dcb2; color:#6b5410; }
+  #paLogin .pa-chip { background:#f4faf8; border-color:#c4ddd6; color:#17323a; }
+  #paLogin .pa-chip.pa-sel { background:#0b5563; border-color:#0b5563; color:#ffffff; }
+  #paLogin .pa-check { box-shadow:0 12px 26px rgba(47,191,113,.35); }
+  #paLogin .pa-spinner { border-color:rgba(11,85,99,.2); border-top-color:#0b5563; }
+  #paLogin .pa-brand { background:#eef7f4; border:1px solid #dcebe6; animation:paPulseLight 2.6s ease-out infinite; }
+  @keyframes paPulseLight { 0% { box-shadow:0 0 0 0 rgba(11,85,99,.20); } 70% { box-shadow:0 0 0 16px rgba(11,85,99,0); } 100% { box-shadow:0 0 0 0 rgba(11,85,99,0); } }
+  #paLogin .pa-trust { border-top-color:#e2eeea; }
+  #paLogin .pa-trust span { color:#47636b; }
+  #paLogin .pa-trust svg { stroke:#0b5563; }
+  #paLogout { background:#0b5563; }
+  #paProfile { background:rgba(10,40,48,.45); }
+  #paProfile .pa-card { background:#ffffff; border:1px solid #dcebe6; box-shadow:0 18px 44px rgba(8,60,66,.22); color:#17323a; }
+  #paProfile h1 { color:#0d2f38; }
+  #paProfile .pa-sub { color:#47636b; opacity:1; }
+  #paProfile .pa-label { color:#17323a; }
+  #paProfile .pa-input { background:#f4faf8; border:1px solid #c4ddd6; color:#17323a; color-scheme:light; }
+  #paProfile .pa-input::placeholder { color:#8aa5ad; }
+  #paProfile .pa-input:focus { border-color:#0e7c86; background:#ffffff; box-shadow:0 0 0 4px rgba(14,124,134,.15); }
+  #paProfile .pa-btn { background:#0b5563; color:#ffffff; }
+  #paProfile .pa-btn.pa-ghost { background:#eef7f4; color:#0b5563; border:1px solid #c4ddd6; }
+  #paProfile .pa-err { color:#b3261e; }
+  #paProfile .pa-ok { color:#177245; }
+  #paProfile .pa-chip { background:#f4faf8; border-color:#c4ddd6; color:#17323a; }
+  #paProfile .pa-chip.pa-sel { background:#0b5563; border-color:#0b5563; color:#ffffff; }
+  #paProfile .pa-phone { color:#0d2f38; }
+  #paProfile .pa-note { color:#5d7d85; opacity:1; }
+  @media (prefers-reduced-motion: reduce) { #paLogin .pa-brand { animation:none; } }
+
+  /* Split layout (Nov 25, 2026): modeled on Bharath's approved login
+     mockup. Hero panel left, card right, hero hides on phones. No staff
+     toggle (staff sign in at the dashboard), no forgot password and no
+     remember me, because those flows do not exist; the one-time code
+     stays the front door and the password the side door, as built. */
+  #paLogin { justify-content:flex-end; }
+  #paLogin .pa-hero { position:absolute; left:0; top:0; bottom:0; width:54%; display:flex; flex-direction:column; background:linear-gradient(180deg, #e9f6f1 0%, #ddefe8 100%); overflow:hidden; }
+  #paLogin .pa-hero-text { padding:54px 54px 6px; text-align:left; }
+  #paLogin .pa-hero h2 { margin:0 0 12px; font-size:39px; line-height:1.16; font-weight:800; color:#0a4a56; letter-spacing:-.5px; }
+  #paLogin .pa-hero p { margin:0; font-size:16.5px; line-height:1.5; color:#47636b; }
+  #paLogin .pa-hero ul { list-style:none; margin:28px 0 0; padding:0; display:grid; gap:15px; }
+  #paLogin .pa-hero li { display:flex; align-items:center; gap:13px; font-size:16px; font-weight:600; color:#17323a; }
+  #paLogin .pa-hchip { flex:0 0 auto; width:41px; height:41px; border-radius:12px; background:#ffffff; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 14px rgba(8,60,66,.10); }
+  #paLogin .pa-hero-img { margin-top:auto; width:100%; height:46%; object-fit:cover; object-position:center 30%; display:block; }
+  #paLogin .pa-card { text-align:left; margin:24px clamp(14px, 5vw, 84px) 24px 24px; width:min(94vw, 432px); }
+  #paLogin .pa-brand { margin-left:auto; margin-right:auto; }
+  #paLogin .pa-logo { text-align:center; }
+  #paLogin [data-pa="done"], #paLogin [data-pa="verifying"] { text-align:center; }
+  #paLogin .pa-or { display:flex; align-items:center; gap:12px; margin:20px 0 4px; color:#8aa5ad; font-size:13px; }
+  #paLogin .pa-or::before, #paLogin .pa-or::after { content:""; flex:1; height:1px; background:#dcebe6; }
+  #paLogin .pa-btn.pa-outline { background:#ffffff; color:#0b5563; border:1.5px solid #0b5563; box-shadow:none; margin-top:10px; }
+  #paLogin .pa-trust { justify-content:center; }
+  #paLogin .pa-trust span.pa-trust-pill { flex:0 1 auto; flex-direction:row; align-items:center; gap:8px; background:#eef7f4; border:1px solid #dcebe6; border-radius:999px; padding:9px 16px; font-size:12.5px; font-weight:600; color:#47636b; }
+  @media (max-width: 940px) { #paLogin { justify-content:center; } #paLogin .pa-hero { display:none; } #paLogin .pa-card { margin:0; } }
+
+  /* Mascot bot (image edition, Nov 25, 2026): the 3D bot lives in the
+     gate's corner. Soft CSS glows ride over its heart and antenna, it
+     leans toward the pointer, and its face swaps with the moment: shy
+     on the password screen, concerned when an error shows, and a
+     waving celebration when sign-in completes. Presentation only: it
+     watches the screens and never touches the sign-in logic. */
+  #paBot { position:absolute; left:20px; bottom:16px; width:118px; z-index:5; pointer-events:none; font-family:'Segoe UI', system-ui, sans-serif; }
+  #paBot .pa-bot-stage { position:relative; animation:paBotBob 3.2s ease-in-out infinite alternate; }
+  @keyframes paBotBob { from { transform:translateY(0); } to { transform:translateY(-5px); } }
+  #paBotImg { width:100%; display:block; border-radius:26px; transform-origin:50% 85%; }
+  #paBot .pa-bot-glow { position:absolute; border-radius:50%; pointer-events:none; }
+  #paBot .pa-bot-glow-heart { left:50%; top:73%; width:52%; height:34%; transform:translate(-50%, -50%); background:radial-gradient(closest-side, rgba(255,96,96,.55), rgba(255,96,96,0) 72%); animation:paBotHeart 1.7s ease-in-out infinite; }
+  @keyframes paBotHeart { 0%, 100% { opacity:.45; transform:translate(-50%, -50%) scale(1); } 12% { opacity:.95; transform:translate(-50%, -50%) scale(1.14); } 24% { opacity:.6; transform:translate(-50%, -50%) scale(1.03); } 36% { opacity:.9; transform:translate(-50%, -50%) scale(1.1); } 55% { opacity:.45; transform:translate(-50%, -50%) scale(1); } }
+  #paBot .pa-bot-glow-ant { left:50%; top:13.5%; width:34%; height:22%; transform:translate(-50%, -50%); background:radial-gradient(closest-side, rgba(255,205,84,.75), rgba(255,205,84,0) 70%); animation:paBotAnt 2.6s ease-in-out infinite alternate; }
+  @keyframes paBotAnt { from { opacity:.5; transform:translate(-50%, -50%) scale(1); } to { opacity:.95; transform:translate(-50%, -50%) scale(1.18); } }
+  #paBot .pa-bot-bubble { position:absolute; left:0; bottom:calc(100% + 10px); background:#ffffff; color:#17323a; border:1px solid #dcebe6; padding:8px 13px; border-radius:14px; font-size:13.5px; font-weight:700; white-space:nowrap; box-shadow:0 10px 22px rgba(8,60,66,.18); opacity:0; transform:scale(.85); transform-origin:bottom left; transition:opacity .25s ease, transform .25s ease; z-index:6; }
+  #paBot .pa-bot-bubble::after { content:""; position:absolute; left:36px; bottom:-6px; width:12px; height:12px; background:#ffffff; border-right:1px solid #dcebe6; border-bottom:1px solid #dcebe6; transform:rotate(45deg); }
+  #paBot .pa-bot-bubble.pa-show { opacity:1; transform:scale(1); }
+  #paBot.pa-bot-happy #paBotImg { animation:paBotJump .55s ease 2; }
+  @keyframes paBotJump { 0%, 100% { transform:translateY(0); } 40% { transform:translateY(-11px); } }
+  #paBot.pa-bot-wave #paBotImg { animation:paBotWiggle .45s ease-in-out infinite alternate; }
+  @keyframes paBotWiggle { from { transform:rotate(-2.6deg); } to { transform:rotate(2.6deg); } }
+  @media (max-width: 940px) { #paLogin { padding-bottom:104px; box-sizing:border-box; } #paLogin .pa-card { max-height:calc(100dvh - 136px); } #paBot { width:84px; left:12px; bottom:12px; } }
+  @media (prefers-reduced-motion: reduce) { #paBot .pa-bot-stage, #paBot .pa-bot-glow-heart, #paBot .pa-bot-glow-ant, #paBot.pa-bot-happy #paBotImg, #paBot.pa-bot-wave #paBotImg { animation:none; } }
 </style>
 
 <div id="paLogin" hidden>
+  <div class="pa-hero" aria-hidden="true">
+    <div class="pa-hero-text">
+      <h2>Smarter, more connected care</h2>
+      <p>A secure platform for patients and their clinics.</p>
+      <ul>
+        <li><span class="pa-hchip"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#0b5563" stroke-width="2" stroke-linecap="round"><rect x="4" y="6" width="16" height="14" rx="2"/><path d="M4 10h16M8 3v4M16 3v4"/></svg></span>Book and manage appointments</li>
+        <li><span class="pa-hchip"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#0b5563" stroke-width="2" stroke-linecap="round"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9.5 4a2.5 2.5 0 0 1 5 0"/><path d="M9.5 12h5M9.5 16h3.5"/></svg></span>See your lab reports</li>
+        <li><span class="pa-hchip"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#0b5563" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3 2.8-4.5 5.5-4.5s4.9 1.5 5.5 4.5"/><circle cx="17" cy="9" r="2.6"/><path d="M15.8 14.6c2.2.2 3.8 1.6 4.3 4.4"/></svg></span>Stay connected with your care team</li>
+      </ul>
+    </div>
+    <img class="pa-hero-img" src="login-hero.png" alt="">
+  </div>
   <div class="pa-blob pa-b1"></div><div class="pa-blob pa-b2"></div><div class="pa-blob pa-b3"></div>
   <div class="pa-card">
+    <div class="pa-brand"><img src="bot-normal.webp" alt="Hospital AI"></div>
     <div class="pa-logo">Hospital AI</div>
 
     <label class="pa-label" for="paHospital">Hospital</label>
@@ -2293,8 +2436,8 @@
 
     <!-- phone + code request -->
     <div class="pa-screen" data-pa="phone">
-      <h1>Sign in with your phone</h1>
-      <p class="pa-sub">We will send a one-time code to your number.
+      <h1>Welcome back</h1>
+      <p class="pa-sub">You are in safe hands. Sign in with your mobile number to book visits, see your reports, and reach your clinic. We will send a one-time code to your number.
         <span class="pa-te">మీ నంబర్‌కు వన్-టైమ్ కోడ్ పంపుతాము</span></p>
       <label class="pa-label" for="paPhone">Mobile number</label>
       <div class="pa-row">
@@ -2314,7 +2457,8 @@
       </div>
       <div class="pa-err" id="paPhoneErr"></div>
       <button class="pa-btn" id="paSend">Send code</button>
-      <p class="pa-alt">Have a password? <button class="pa-link" id="paToPass">Use password instead</button></p>
+      <div class="pa-or"><span>Or</span></div>
+      <button class="pa-btn pa-outline" id="paToPass">Sign in with password</button>
     </div>
 
     <!-- password sign-in -->
@@ -2341,7 +2485,8 @@
       <input id="paPass" class="pa-input" type="password" placeholder="Your password">
       <div class="pa-err" id="paPassErr"></div>
       <button class="pa-btn" id="paPassBtn">Sign in</button>
-      <p class="pa-alt">No password yet? <button class="pa-link" id="paToOtp">Use a one-time code</button></p>
+      <div class="pa-or"><span>Or</span></div>
+      <button class="pa-btn pa-outline" id="paToOtp">Continue with a one-time code</button>
     </div>
 
     <!-- code entry -->
@@ -2414,6 +2559,13 @@
       </div>
     </div>
 
+    <div class="pa-trust">
+      <span class="pa-trust-pill"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 5-3.5 8.2-7 9.2C8.5 19.2 5 16 5 11V6l7-3z"/><path d="M9 11.8l2.2 2.2L15.5 9.7"/></svg>Your data stays private, protected under the DPDP Act</span>
+    </div>
+  </div>
+  <div id="paBot" aria-hidden="true">
+    <div class="pa-bot-bubble" id="paBotBubble"></div>
+    <div class="pa-bot-stage"><img id="paBotImg" src="bot-normal.webp" alt=""><div class="pa-bot-glow pa-bot-glow-ant"></div><div class="pa-bot-glow pa-bot-glow-heart"></div></div>
   </div>
 </div>
 <button id="paLogout" hidden></button>
@@ -2869,6 +3021,88 @@
   } else {
     showGate('phone');
   }
+})();
+</script>
+
+<script>
+/* Mascot bot behaviour (image edition, Nov 25, 2026): observes only.
+   Faces: normal, shy (the password screen), concerned (an error
+   shows), happy and waving (sign-in complete, with the welcome
+   bubble). It never calls the auth APIs or changes sign-in state. */
+(function () {
+  var bot = document.getElementById('paBot');
+  if (!bot) return;
+  var img = document.getElementById('paBotImg');
+  var bubble = document.getElementById('paBotBubble');
+  var SRC = { normal: 'bot-normal.webp', shy: 'bot-shy.webp', happy: 'bot-happy.webp', wave: 'bot-wave.webp', concerned: 'bot-concerned.webp' };
+  Object.keys(SRC).forEach(function (k) { var i = new Image(); i.src = SRC[k]; });
+  var reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var base = 'normal', face = 'normal', celebrating = false;
+  var flashTimer = null, waveTimer = null, bubbleTimer = null;
+
+  function setFace(f) { if (face === f) return; face = f; img.src = SRC[f]; }
+  function applyBase() { if (!celebrating) setFace(base); }
+
+  window.addEventListener('pointermove', function (e) {
+    if (reduced || celebrating) return;
+    var r = bot.getBoundingClientRect();
+    var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    var dx = Math.max(-1, Math.min(1, (e.clientX - cx) / 220));
+    var dy = Math.max(-1, Math.min(1, (e.clientY - cy) / 220));
+    img.style.transform = 'rotate(' + (dx * 4).toFixed(1) + 'deg) translate(' + (dx * 4).toFixed(1) + 'px,' + (dy * 2).toFixed(1) + 'px)';
+  }, { passive: true });
+
+  function flashConcerned() {
+    if (celebrating) return;
+    setFace('concerned');
+    clearTimeout(flashTimer);
+    flashTimer = setTimeout(applyBase, 2400);
+  }
+  ['paPhoneErr', 'paPassErr', 'paOtpErr', 'paNameErr', 'paSetPassErr'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) new MutationObserver(function () { if ((el.textContent || '').trim()) flashConcerned(); }).observe(el, { childList: true, characterData: true, subtree: true });
+  });
+
+  function celebrate() {
+    celebrating = true;
+    bot.classList.add('pa-bot-happy');
+    var name = '';
+    var dt = document.getElementById('paDoneText');
+    if (dt) { var mm = /Welcome,\s*(.+?)\./.exec(dt.textContent || ''); if (mm) name = mm[1]; }
+    bubble.textContent = name ? ('Welcome, ' + name + '!') : 'Welcome!';
+    bubble.classList.add('pa-show');
+    clearTimeout(bubbleTimer);
+    bubbleTimer = setTimeout(function () { bubble.classList.remove('pa-show'); }, 6000);
+    var waves = 0;
+    setFace('wave');
+    bot.classList.add('pa-bot-wave');
+    clearInterval(waveTimer);
+    waveTimer = setInterval(function () {
+      waves++;
+      setFace(waves % 2 ? 'happy' : 'wave');
+      if (waves >= 6) { clearInterval(waveTimer); bot.classList.remove('pa-bot-wave'); img.style.transform = ''; setFace('happy'); }
+    }, 430);
+  }
+  function resetAll() {
+    celebrating = false;
+    clearInterval(waveTimer);
+    bot.classList.remove('pa-bot-happy');
+    bot.classList.remove('pa-bot-wave');
+    bubble.classList.remove('pa-show');
+    img.style.transform = '';
+    base = 'normal';
+    applyBase();
+  }
+  function watch(screen, fn) {
+    var el = document.querySelector('[data-pa="' + screen + '"]');
+    if (el) new MutationObserver(function () { if (!el.hidden) fn(); }).observe(el, { attributes: true, attributeFilter: ['hidden'] });
+  }
+  watch('pass', function () { base = 'shy'; applyBase(); });
+  watch('phone', resetAll);
+  watch('otp', function () { base = 'normal'; applyBase(); });
+  watch('name', function () { base = 'normal'; applyBase(); });
+  watch('profile', function () { base = 'normal'; applyBase(); });
+  watch('done', celebrate);
 })();
 </script>
 

@@ -595,8 +595,8 @@
     <div class="auth-gate" id="authGate">
       <div class="auth-card">
         <div class="auth-brand">
-          <div class="brand-mark" aria-hidden="true" style="width:38px; height:38px; border-radius:11px; background:#E9F6F0; color:#0A4A3F; display:grid; place-items:center">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 4v16M4 12h16"/><rect x="3.5" y="3.5" width="17" height="17" rx="5" stroke-width="1.6" opacity=".45"/></svg>
+          <div class="brand-mark" aria-hidden="true" style="width:38px; height:38px; border-radius:11px; overflow:hidden; background:#ffffff; border:1px solid #dcebe6">
+            <img src="bot-normal.webp" alt="" style="width:100%; height:100%; object-fit:cover; display:block">
           </div>
           <div>
             <div class="brand-name" style="font-weight:700; font-size:16.5px; line-height:1.15">MediCare AI</div>
@@ -3824,6 +3824,117 @@
     /* ---------- boot: the sign-in gate comes first ---------- */
     initAuth();
     </script>
+
+
+<style>
+  /* Mascot bot (image edition, Nov 25, 2026): the same 3D greeter as
+     the patient app. Glows ride over its heart and antenna, it leans
+     toward the pointer, turns concerned when a sign-in error shows,
+     and celebrates a successful sign-in before stepping aside. It
+     observes only and never touches auth state. */
+  #dbBot { position:fixed; left:18px; bottom:16px; width:108px; z-index:1200; pointer-events:none; font-family:'Segoe UI', system-ui, sans-serif; transition:opacity .5s ease, visibility .5s ease; }
+  #dbBot.db-bot-bye { opacity:0; visibility:hidden; }
+  #dbBot .db-bot-stage { position:relative; animation:dbBotBob 3.2s ease-in-out infinite alternate; }
+  @keyframes dbBotBob { from { transform:translateY(0); } to { transform:translateY(-5px); } }
+  #dbBotImg { width:100%; display:block; border-radius:24px; transform-origin:50% 85%; }
+  #dbBot .db-bot-glow { position:absolute; border-radius:50%; pointer-events:none; }
+  #dbBot .db-bot-glow-heart { left:50%; top:73%; width:52%; height:34%; transform:translate(-50%, -50%); background:radial-gradient(closest-side, rgba(255,96,96,.55), rgba(255,96,96,0) 72%); animation:dbBotHeart 1.7s ease-in-out infinite; }
+  @keyframes dbBotHeart { 0%, 100% { opacity:.45; transform:translate(-50%, -50%) scale(1); } 12% { opacity:.95; transform:translate(-50%, -50%) scale(1.14); } 24% { opacity:.6; transform:translate(-50%, -50%) scale(1.03); } 36% { opacity:.9; transform:translate(-50%, -50%) scale(1.1); } 55% { opacity:.45; transform:translate(-50%, -50%) scale(1); } }
+  #dbBot .db-bot-glow-ant { left:50%; top:13.5%; width:34%; height:22%; transform:translate(-50%, -50%); background:radial-gradient(closest-side, rgba(255,205,84,.75), rgba(255,205,84,0) 70%); animation:dbBotAnt 2.6s ease-in-out infinite alternate; }
+  @keyframes dbBotAnt { from { opacity:.5; transform:translate(-50%, -50%) scale(1); } to { opacity:.95; transform:translate(-50%, -50%) scale(1.18); } }
+  #dbBot .db-bot-bubble { position:absolute; left:0; bottom:calc(100% + 10px); background:#ffffff; color:#17323a; border:1px solid #dcebe6; padding:8px 13px; border-radius:14px; font-size:13.5px; font-weight:700; white-space:nowrap; box-shadow:0 10px 22px rgba(8,60,66,.18); opacity:0; transform:scale(.85); transform-origin:bottom left; transition:opacity .25s ease, transform .25s ease; z-index:6; }
+  #dbBot .db-bot-bubble::after { content:""; position:absolute; left:36px; bottom:-6px; width:12px; height:12px; background:#ffffff; border-right:1px solid #dcebe6; border-bottom:1px solid #dcebe6; transform:rotate(45deg); }
+  #dbBot .db-bot-bubble.db-show { opacity:1; transform:scale(1); }
+  #dbBot.db-bot-happy #dbBotImg { animation:dbBotJump .55s ease 2; }
+  @keyframes dbBotJump { 0%, 100% { transform:translateY(0); } 40% { transform:translateY(-11px); } }
+  #dbBot.db-bot-wave #dbBotImg { animation:dbBotWiggle .45s ease-in-out infinite alternate; }
+  @keyframes dbBotWiggle { from { transform:rotate(-2.6deg); } to { transform:rotate(2.6deg); } }
+  @media (max-width: 700px) { #dbBot { width:84px; left:12px; bottom:12px; } }
+  @media (prefers-reduced-motion: reduce) { #dbBot .db-bot-stage, #dbBot .db-bot-glow-heart, #dbBot .db-bot-glow-ant, #dbBot.db-bot-happy #dbBotImg, #dbBot.db-bot-wave #dbBotImg { animation:none; } }
+</style>
+<div id="dbBot" aria-hidden="true">
+  <div class="db-bot-bubble" id="dbBotBubble"></div>
+  <div class="db-bot-stage"><img id="dbBotImg" src="bot-normal.webp" alt=""><div class="db-bot-glow db-bot-glow-ant"></div><div class="db-bot-glow db-bot-glow-heart"></div></div>
+</div>
+<script>
+/* Mascot bot behaviour (image edition, Nov 25, 2026): observes the
+   auth gate and the app shell. Concerned when a sign-in error shows;
+   a waving celebration on success, then it steps aside. */
+(function () {
+  var bot = document.getElementById('dbBot');
+  if (!bot) return;
+  var img = document.getElementById('dbBotImg');
+  var bubble = document.getElementById('dbBotBubble');
+  var SRC = { normal: 'bot-normal.webp', happy: 'bot-happy.webp', wave: 'bot-wave.webp', concerned: 'bot-concerned.webp' };
+  Object.keys(SRC).forEach(function (k) { var i = new Image(); i.src = SRC[k]; });
+  var reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var face = 'normal', greeted = false;
+  var flashTimer = null, waveTimer = null, bubbleTimer = null, byeTimer = null;
+
+  function setFace(f) { if (face === f) return; face = f; img.src = SRC[f]; }
+  window.addEventListener('pointermove', function (e) {
+    if (reduced || greeted) return;
+    var r = bot.getBoundingClientRect();
+    var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    var dx = Math.max(-1, Math.min(1, (e.clientX - cx) / 220));
+    var dy = Math.max(-1, Math.min(1, (e.clientY - cy) / 220));
+    img.style.transform = 'rotate(' + (dx * 4).toFixed(1) + 'deg) translate(' + (dx * 4).toFixed(1) + 'px,' + (dy * 2).toFixed(1) + 'px)';
+  }, { passive: true });
+
+  function flashConcerned() {
+    if (greeted) return;
+    setFace('concerned');
+    clearTimeout(flashTimer);
+    flashTimer = setTimeout(function () { setFace('normal'); }, 2400);
+  }
+  ['authAlert', 'mfaAlert'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) new MutationObserver(function () {
+      if (el.style.display !== 'none' && (el.textContent || '').trim()) flashConcerned();
+    }).observe(el, { attributes: true, attributeFilter: ['style'], childList: true, characterData: true, subtree: true });
+  });
+
+  function shown(el) { return !!el && window.getComputedStyle(el).display !== 'none'; }
+  function check() {
+    var app = document.getElementById('appRoot');
+    var gate = document.getElementById('authGate');
+    if (shown(app) && !greeted) {
+      greeted = true;
+      bot.classList.remove('db-bot-bye');
+      bot.classList.add('db-bot-happy');
+      img.style.transform = '';
+      bubble.textContent = 'Welcome back!';
+      bubble.classList.add('db-show');
+      clearTimeout(bubbleTimer); clearTimeout(byeTimer);
+      bubbleTimer = setTimeout(function () { bubble.classList.remove('db-show'); }, 4200);
+      byeTimer = setTimeout(function () { bot.classList.add('db-bot-bye'); }, 5000);
+      var waves = 0;
+      setFace('wave');
+      bot.classList.add('db-bot-wave');
+      clearInterval(waveTimer);
+      waveTimer = setInterval(function () {
+        waves++;
+        setFace(waves % 2 ? 'happy' : 'wave');
+        if (waves >= 6) { clearInterval(waveTimer); bot.classList.remove('db-bot-wave'); setFace('happy'); }
+      }, 430);
+    } else if (shown(gate) && greeted) {
+      greeted = false;
+      clearTimeout(byeTimer); clearTimeout(bubbleTimer); clearInterval(waveTimer);
+      bot.classList.remove('db-bot-bye');
+      bot.classList.remove('db-bot-happy');
+      bot.classList.remove('db-bot-wave');
+      bubble.classList.remove('db-show');
+      setFace('normal');
+    }
+  }
+  ['appRoot', 'authGate'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) new MutationObserver(check).observe(el, { attributes: true, attributeFilter: ['style', 'class', 'hidden'] });
+  });
+  document.addEventListener('click', function () { setTimeout(check, 350); });
+  check();
+})();
+</script>
 
 </body>
 </html>
