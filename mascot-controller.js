@@ -30,29 +30,47 @@
     img.decode().then(()=>{a.ready=true;setPose(pose);}).catch(()=>{if(name==='normal') bot.dataset.assetError='true';});
   });
   stage.querySelector('canvas')?.remove();
-  // A local, pre-rendered warp replaces the original eye pixels, not overlays them.
-  const atlas=new Image(); atlas.src='bot-eye-motion.webp';
-  Promise.all([atlas.decode(),original.decode()]).then(()=>{
-    eyeOriginal=original; eyeAtlas=atlas;
-    eyeCanvas=document.createElement('canvas'); eyeCanvas.width=480; eyeCanvas.height=480;
-    eyeCanvas.className='mascot-pose'; eyeCanvas.setAttribute('aria-hidden','true');
-    stage.append(eyeCanvas); drawEyes(12); setPose(pose); startEyes();
-  }).catch(()=>{});
-  function drawEyes(tile){
-    if(!eyeCanvas||tile===lastTile)return; lastTile=tile;
-    const c=eyeCanvas.getContext('2d'); c.clearRect(0,0,480,480);c.drawImage(original,0,0,480,480);
-    c.clearRect(140,190,200,80); c.drawImage(eyeAtlas,(tile%5)*200,Math.floor(tile/5)*80,200,80,140,190,200,80);
+  // Smooth local pixel warp; no rectangular atlas swaps.
+  let source, output, fc, lastPaint=0,lastTick=0;
+  const X=135,Y=180,W=210,H=125;
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const smooth=v=>{v=clamp(v,0,1);return v*v*(3-2*v);};
+  original.decode().then(()=>{
+    eyeOriginal=original;eyeCanvas=document.createElement('canvas');eyeCanvas.width=eyeCanvas.height=480;
+    eyeCanvas.className='mascot-pose';stage.append(eyeCanvas);fc=eyeCanvas.getContext('2d',{willReadFrequently:true});fc.drawImage(original,0,0,480,480);
+    source=fc.getImageData(X,Y,W,H);output=fc.createImageData(W,H);setPose(pose);startEyes();
+  }).catch(e=>console.warn('Mascot motion unavailable',e));
+  function drawFace(gx,gy,blink,mouth){
+    if(!fc)return;const src=source.data,dst=output.data;
+    for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+      const px=x+X,py=y+Y;let sx=x,sy=y;
+      for(const cx of [184,295]){
+        const dx=px-cx,dy=py-229;
+        const w=1-smooth((Math.sqrt((dx/45)**2+(dy/42)**2)-.57)/.43);
+        sx-=gx*9*w;sy-=gy*5*w;
+        const ay=Math.abs(dy),inner=24,outer=39,k=1-.91*blink,edge=inner*k;
+        const mapped=ay<=edge?ay/k:ay<outer?inner+(ay-edge)*(outer-inner)/(outer-edge):ay;
+        sy+=(Math.sign(dy)*mapped-dy)*(1-smooth((Math.abs(dx)-23)/20));
+      }
+      const mx=px-240,my=py-269,mw=1-smooth((Math.sqrt((mx/35)**2+(my/29)**2)-.55)/.45);
+      sy-=my*mouth*.26*mw;
+      sx=clamp(sx,0,W-1);sy=clamp(sy,0,H-1);
+      const ix=Math.floor(sx),iy=Math.floor(sy),fx=sx-ix,fy=sy-iy;
+      const a=(iy*W+ix)*4,b=(iy*W+Math.min(ix+1,W-1))*4,c=(Math.min(iy+1,H-1)*W+ix)*4,d=(Math.min(iy+1,H-1)*W+Math.min(ix+1,W-1))*4,o=(y*W+x)*4;
+      for(let j=0;j<4;j++)dst[o+j]=(src[a+j]*(1-fx)+src[b+j]*fx)*(1-fy)+(src[c+j]*(1-fx)+src[d+j]*fx)*fy;
+    }fc.putImageData(output,X,Y);
   }
-  function stopEyes(){if(gazeRAF)cancelAnimationFrame(gazeRAF);gazeRAF=0;blinkStart=0;gx=gy=tx=ty=0;drawEyes(12);}
-  function startEyes(){if(gazeRAF||!eyeCanvas||motion.matches||document.hidden||!['idle','typing'].includes(state))return;nextBlink=performance.now()+1800+Math.random()*1800;lastMove=performance.now();gazeRAF=requestAnimationFrame(eyeLoop);}
+  function stopEyes(){if(gazeRAF)cancelAnimationFrame(gazeRAF);gazeRAF=0;blinkStart=0;gx=gy=tx=ty=0;lastPaint=lastTick=0;drawFace(0,0,0,0);}
+  function startEyes(){if(gazeRAF||!eyeCanvas||motion.matches||document.hidden||!['idle','typing','verifying'].includes(state))return;nextBlink=performance.now()+1500;lastMove=performance.now()-3000;gazeRAF=requestAnimationFrame(eyeLoop);}
   function eyeLoop(t){
-    gazeRAF=0;if(motion.matches||document.hidden||!['idle','typing'].includes(state)){stopEyes();return;}
-    if(t-lastMove>3500){tx=(Math.random()-.5)*1.5;ty=(Math.random()-.5);lastMove=t;}
-    gx+=(tx-gx)*.14;gy+=(ty-gy)*.14;
-    let tile=(Math.round(Math.max(-1,Math.min(1,gy))*2)+2)*5+Math.round(Math.max(-1,Math.min(1,gx))*2)+2;
+    gazeRAF=0;if(motion.matches||document.hidden||!['idle','typing','verifying'].includes(state)){stopEyes();return;}
+    const dt=lastTick?Math.min(80,t-lastTick):16;lastTick=t;
+    if(t-lastMove>2800){tx=(Math.random()-.5)*1.7;ty=(Math.random()-.5)*1.1;lastMove=t;}
+    const ease=1-Math.exp(-dt/100);gx+=(tx-gx)*ease;gy+=(ty-gy)*ease;
     if(t>=nextBlink&&!blinkStart)blinkStart=t;
-    if(blinkStart){const d=t-blinkStart;if(d<45)tile=25;else if(d<90)tile=26;else if(d<150)tile=27;else if(d<195)tile=26;else if(d<240)tile=25;else{blinkStart=0;nextBlink=t+2700+Math.random()*2300;}}
-    drawEyes(tile);gazeRAF=requestAnimationFrame(eyeLoop);
+    let blink=0;if(blinkStart){const d=t-blinkStart;blink=d<100?smooth(d/100):d<165?1:d<290?1-smooth((d-165)/125):0;if(d>=290){blinkStart=0;nextBlink=t+2700+Math.random()*1900;}}
+    if(t-lastPaint>=30){lastPaint=t;drawFace(gx,gy,blink,.65*Math.sin(t/620));}
+    stage.style.setProperty('--mascot-lean',(gx*5+Math.sin(t/1100)*2.5)+'deg');gazeRAF=requestAnimationFrame(eyeLoop);
   }
 
   function say(text) { bubble.textContent=text; bubble.classList.toggle('mascot-speech',!!text); queuePlace(); }
@@ -88,7 +106,7 @@
     if(next==='verifying') say('One moment…');
     if(next==='success'){say(patient?'Welcome!':'Welcome back!');if(!patient)later(()=>transition('hidden'),3000);}
     queuePlace();startEyes();
-    if(next==='idle'&&!motion.matches)later(()=>{if(state==='idle'&&!interacted){greeted=false;helloAttempted=false;sync();}},18000);
+    
   }
   function sync(){
     if(document.hidden){transition('hidden');return;}
@@ -100,7 +118,7 @@
     if(!wasOpen){greeted=false;helloAttempted=false;interacted=false;wasOpen=true;}
     const active=document.activeElement;
     const screen=patient?gate.querySelector('[data-pa]:not([hidden])')?.dataset.pa:'';
-    const busy=patient?(screen==='verifying'||(screen==='phone'&&$('paSend')?.disabled)):(shown($('authChecking'))||$('loginSubmit')?.disabled||$('mfaVerifyBtn')?.disabled);
+    const busy=patient?(screen==='verifying'||(screen==='phone'&&$('paSend')?.disabled)):(shown($('authChecking'))||(shown($('loginSubmit'))&&$('loginSubmit')?.disabled)||(shown($('mfaVerifyBtn'))&&$('mfaVerifyBtn')?.disabled));
     const errors=(patient?['paPhoneErr','paPassErr','paOtpErr','paNameErr','paSetPassErr']:['authAlert','mfaAlert']).some(id=>{const e=$(id);return shown(e)&&e.textContent.trim()&&!e.classList.contains('info')&&!e.classList.contains('ok');});
     const privacy=(patient&&screen==='pass')||(gate.contains(active)&&active.matches('input[type=password],input[autocomplete=one-time-code],input[autocomplete=current-password],input[autocomplete=new-password]'));
     const typing=gate.contains(active)&&active.matches('input,textarea,select');
@@ -117,7 +135,7 @@
   if(window.visualViewport){listen(visualViewport,'resize',queuePlace);listen(visualViewport,'scroll',queuePlace);}
   ['focusin','focusout'].forEach(e=>listen(gate,e,schedule));listen(gate,'input',()=>{interacted=true;schedule();});listen(gate,'pointerdown',()=>{interacted=true;greeted=true;schedule();},{passive:true});
   listen(document,'visibilitychange',sync);listen(motion,'change',()=>{greeted=true;if(motion.matches)stopEyes();sync();startEyes();});
-  listen(window,'pointermove',e=>{if(motion.matches||!['idle','typing'].includes(state))return;const r=bot.getBoundingClientRect();tx=Math.max(-1,Math.min(1,(e.clientX-r.left-r.width/2)/100));ty=Math.max(-1,Math.min(1,(e.clientY-r.top-r.height*.48)/100));lastMove=performance.now();stage.style.setProperty('--mascot-lean',Math.max(-3,Math.min(3,(e.clientX-r.left-r.width/2)/90))+'deg');},{passive:true});
+  listen(window,'pointermove',e=>{if(motion.matches||!['idle','typing'].includes(state))return;const r=bot.getBoundingClientRect();tx=Math.max(-1,Math.min(1,(e.clientX-r.left-r.width/2)/100));ty=Math.max(-1,Math.min(1,(e.clientY-r.top-r.height*.48)/100));lastMove=performance.now();},{passive:true});
   listen(window,'pagehide',()=>{cancel();transition('hidden');});listen(window,'pageshow',sync);
   // Available for SPA teardown if needed.
   bot.destroyMascot=()=>{cancel();transition('hidden');cleanups.forEach(fn=>fn());};

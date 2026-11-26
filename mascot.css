@@ -18,3 +18,7 @@
 /* More visible, calm idle movement and an opening greeting. */
 @keyframes mascot-breathe{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-3px) scale(1.025,1.015)}}
 @keyframes mascot-greet{0%,100%{transform:rotate(0)}25%{transform:translateY(-5px) rotate(-5deg)}75%{transform:translateY(-3px) rotate(4deg)}}
+
+:is(#paBot,#dbBot) :is(.pa-bot-stage,.db-bot-stage){transition:transform .12s linear;}
+@keyframes mascot-breathe{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-5px) scale(1.035,1.025)}}
+@media(prefers-reduced-motion:reduce){:is(#paBot,#dbBot) :is(.pa-bot-stage,.db-bot-stage){transform:none!important;}}
