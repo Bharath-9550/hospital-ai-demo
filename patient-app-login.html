@@ -3114,25 +3114,29 @@
     var patch = document.createElement('canvas'); patch.width = 480; patch.height = 480;
     var pctx = patch.getContext('2d');
     var blinkStart = 0, nextBlink = 2400 + Math.random() * 2000, blinkAgain = false;
-    window.addEventListener('pointermove', function (e) {
+    function lookAt(x, y) {
       lastPtr = Date.now();
       var r = bot.getBoundingClientRect();
       if (!r.width) return;
-      var dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height * 0.48);
+      var dx = x - (r.left + r.width / 2), dy = y - (r.top + r.height * 0.48);
       var dist = Math.sqrt(dx * dx + dy * dy);
       if (dist < 1) return;
-      var f = Math.min(1, dist / 220);
-      tx = (dx / dist) * 15 * f; ty = (dy / dist) * 9 * f; if (ty < -8) ty = -8;
-    }, { passive: true });
+      var f = Math.min(1, dist / 140);
+      tx = (dx / dist) * 16 * f; ty = (dy / dist) * 9 * f; if (ty < -8) ty = -8;
+    }
+    window.addEventListener('pointermove', function (e) { lookAt(e.clientX, e.clientY); }, { passive: true });
+    window.addEventListener('pointerdown', function (e) { lookAt(e.clientX, e.clientY); }, { passive: true });
     (function gazeLoop() {
       requestAnimationFrame(gazeLoop);
       if (!baseReady || face !== 'normal' || !gate || gate.hidden) { bot.classList.remove('pa-gaze'); return; }
       var now = Date.now();
       if (now - lastPtr > 3500 && now > nextWander) {
-        tx = (Math.random() * 2 - 1) * 12; ty = (Math.random() * 2 - 1) * 6 - 1;
-        if (Math.random() < 0.3) { tx = 0; ty = 0; }
+        var roll = Math.random();
+        if (roll < 0.3) { tx = (Math.random() < 0.5 ? -14 : 14); ty = (Math.random() * 2 - 1) * 4; }
+        else if (roll < 0.45) { tx = 0; ty = 0; }
+        else { tx = (Math.random() * 2 - 1) * 13; ty = (Math.random() * 2 - 1) * 6 - 1; }
         if (Math.random() < 0.22) { eyeScaleTarget = Math.random() < 0.5 ? 1.10 : 0.90; setTimeout(function () { eyeScaleTarget = 1; }, 1500); }
-        nextWander = now + (busy ? 700 : 2400 + Math.random() * 1600);
+        nextWander = now + (busy ? 700 : 2800 + Math.random() * 1700);
       }
       gx += (tx - gx) * 0.12; gy += (ty - gy) * 0.12;
       eyeScale += (eyeScaleTarget - eyeScale) * 0.08;
@@ -3302,7 +3306,7 @@
       setTimeout(function () {
         gesture(['hello', 'shy', 'happy', 'bigeyes'][Math.floor(Math.random() * 4)]);
         nextGesture();
-      }, 18000 + Math.random() * 17000);
+      }, 15000 + Math.random() * 13000);
     })();
   }
   place();
