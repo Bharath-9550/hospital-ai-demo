@@ -3836,11 +3836,14 @@
      before stepping aside. It observes only, never touches auth. */
   #dbBot { position:fixed; left:12px; top:12px; width:108px; z-index:1200; pointer-events:none; font-family:'Segoe UI', system-ui, sans-serif; transition:left .38s ease, top .38s ease, opacity .5s ease, visibility .5s ease; }
   #dbBot.db-bot-bye { opacity:0; visibility:hidden; }
-  #dbBot .db-bot-stage { position:relative; transform-origin:50% 92%; animation:dbBotIdle 3.6s ease-in-out infinite; }
+  #dbBot .db-bot-stage { position:relative; transform-origin:50% 92%; }
   @keyframes dbBotIdle { 0%, 100% { transform:translateY(0) rotate(-1.7deg); } 50% { transform:translateY(-7px) rotate(1.7deg); } }
-  #dbBot.db-bot-hop .db-bot-stage { animation:dbBotHop .62s ease; }
+  #dbBot.db-bot-hop .db-bot-stage { animation:none; }
   @keyframes dbBotHop { 0% { transform:translateY(0) scale(1, 1); } 35% { transform:translateY(-15px) scale(.97, 1.03); } 70% { transform:translateY(0) scale(1.04, .94); } 100% { transform:translateY(0) scale(1, 1); } }
-  #dbBotImg { width:100%; display:block; border-radius:24px; transform-origin:50% 85%; }
+  #dbBotImg { width:100%; display:block; border-radius:24px; }
+  #dbBotCanvas { position:absolute; inset:0; width:100%; height:100%; display:none; }
+  #dbBot.db-gaze #dbBotCanvas { display:block; }
+  #dbBot.db-gaze #dbBotImg { visibility:hidden; }
   #dbBot .db-bot-glow { position:absolute; border-radius:50%; pointer-events:none; }
   #dbBot .db-bot-glow-heart { left:50%; top:73%; width:52%; height:34%; transform:translate(-50%, -50%); background:radial-gradient(closest-side, rgba(255,96,96,.6), rgba(255,96,96,0) 72%); animation:dbBotHeart 1.7s ease-in-out infinite; }
   @keyframes dbBotHeart { 0%, 100% { opacity:.55; transform:translate(-50%, -50%) scale(1); } 12% { opacity:1; transform:translate(-50%, -50%) scale(1.15); } 24% { opacity:.7; transform:translate(-50%, -50%) scale(1.03); } 36% { opacity:.95; transform:translate(-50%, -50%) scale(1.11); } 55% { opacity:.55; transform:translate(-50%, -50%) scale(1); } }
@@ -3849,16 +3852,16 @@
   #dbBot .db-bot-bubble { position:absolute; left:50%; bottom:calc(100% + 8px); transform:translateX(-50%) scale(.85); background:#ffffff; color:#17323a; border:1px solid #dcebe6; padding:8px 13px; border-radius:14px; font-size:13.5px; font-weight:700; white-space:nowrap; box-shadow:0 10px 22px rgba(8,60,66,.18); opacity:0; transition:opacity .25s ease, transform .25s ease; z-index:6; }
   #dbBot .db-bot-bubble::after { content:""; position:absolute; left:50%; bottom:-6px; margin-left:-6px; width:12px; height:12px; background:#ffffff; border-right:1px solid #dcebe6; border-bottom:1px solid #dcebe6; transform:rotate(45deg); }
   #dbBot .db-bot-bubble.db-show { opacity:1; transform:translateX(-50%) scale(1); }
-  #dbBot.db-bot-happy #dbBotImg { animation:dbBotJump .55s ease 2; }
+  #dbBot.db-bot-happy #dbBotImg { animation:none; }
   @keyframes dbBotJump { 0%, 100% { transform:translateY(0); } 40% { transform:translateY(-11px); } }
-  #dbBot.db-bot-wave #dbBotImg { animation:dbBotWiggle .45s ease-in-out infinite alternate; }
+  #dbBot.db-bot-wave #dbBotImg { animation:none; }
   @keyframes dbBotWiggle { from { transform:rotate(-2.6deg); } to { transform:rotate(2.6deg); } }
   @media (max-width: 700px) { #dbBot { width:84px; } }
   @media (prefers-reduced-motion: reduce) { #dbBot .db-bot-stage, #dbBot.db-bot-hop .db-bot-stage, #dbBot .db-bot-glow-heart, #dbBot .db-bot-glow-ant, #dbBot.db-bot-happy #dbBotImg, #dbBot.db-bot-wave #dbBotImg { animation:none; } }
 </style>
 <div id="dbBot" aria-hidden="true">
   <div class="db-bot-bubble" id="dbBotBubble"></div>
-  <div class="db-bot-stage"><img id="dbBotImg" src="bot-normal.webp" alt=""><div class="db-bot-glow db-bot-glow-ant"></div><div class="db-bot-glow db-bot-glow-heart"></div></div>
+  <div class="db-bot-stage"><img id="dbBotImg" src="bot-normal.webp" alt=""><canvas id="dbBotCanvas" width="480" height="480"></canvas><div class="db-bot-glow db-bot-glow-ant"></div><div class="db-bot-glow db-bot-glow-heart"></div></div>
 </div>
 <script>
 /* Mascot bot behaviour (perch edition, Nov 25, 2026): the script
@@ -3900,22 +3903,52 @@
   window.addEventListener('load', placeSoon);
   placeSoon();
 
-  setInterval(function () {
-    if (reduced || greeted || !gateShown()) return;
-    if (document.visibilityState && document.visibilityState !== 'visible') return;
-    bot.classList.add('db-bot-hop');
-    setTimeout(function () { bot.classList.remove('db-bot-hop'); }, 680);
-  }, 8000);
 
-  function setFace(f) { if (face === f) return; face = f; img.src = SRC[f]; }
-  window.addEventListener('pointermove', function (e) {
-    if (reduced || greeted) return;
-    var r = bot.getBoundingClientRect();
-    var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-    var dx = Math.max(-1, Math.min(1, (e.clientX - cx) / 220));
-    var dy = Math.max(-1, Math.min(1, (e.clientY - cy) / 220));
-    img.style.transform = 'rotate(' + (dx * 4).toFixed(1) + 'deg) translate(' + (dx * 4).toFixed(1) + 'px,' + (dy * 2).toFixed(1) + 'px)';
-  }, { passive: true });
+  function setFace(f) { if (face === f) return; face = f; img.src = SRC[f]; if (f !== 'normal') bot.classList.remove('db-gaze'); }
+  /* Eyes-only motion (Nov 26, 2026): the body stays perfectly
+     still; only the pupils move, drawn on a canvas laid over the
+     still picture. They follow the pointer and wander on their own. */
+  var cv = document.getElementById('dbBotCanvas');
+  if (cv && cv.getContext && !reduced) {
+    var ctx = cv.getContext('2d');
+    var off = document.createElement('canvas'); off.width = 480; off.height = 480;
+    var baseReady = false;
+    var bimg = new Image();
+    bimg.onload = function () { off.getContext('2d').drawImage(bimg, 0, 0, 480, 480); baseReady = true; };
+    bimg.src = SRC.normal;
+    var EYES = [[187, 230], [291, 232]], ER = 38;
+    var gx = 0, gy = 0, tx = 0, ty = 0, lastPtr = 0, nextWander = 0;
+    window.addEventListener('pointermove', function (e) {
+      lastPtr = Date.now();
+      var r = bot.getBoundingClientRect();
+      if (!r.width) return;
+      var dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height * 0.48);
+      var dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 1) return;
+      var f = Math.min(1, dist / 220);
+      tx = (dx / dist) * 11 * f; ty = (dy / dist) * 8 * f;
+    }, { passive: true });
+    (function gazeLoop() {
+      requestAnimationFrame(gazeLoop);
+      if (!baseReady || face !== 'normal' || greeted || !gateShown()) { bot.classList.remove('db-gaze'); return; }
+      var now = Date.now();
+      if (now - lastPtr > 3500 && now > nextWander) {
+        tx = (Math.random() * 2 - 1) * 9; ty = (Math.random() * 2 - 1) * 6;
+        if (Math.random() < 0.3) { tx = 0; ty = 0; }
+        nextWander = now + 2400 + Math.random() * 1600;
+      }
+      gx += (tx - gx) * 0.12; gy += (ty - gy) * 0.12;
+      bot.classList.add('db-gaze');
+      ctx.clearRect(0, 0, 480, 480);
+      ctx.drawImage(off, 0, 0);
+      for (var i = 0; i < EYES.length; i++) {
+        ctx.save();
+        ctx.beginPath(); ctx.arc(EYES[i][0], EYES[i][1], ER, 0, 7); ctx.clip();
+        ctx.drawImage(off, gx, gy);
+        ctx.restore();
+      }
+    })();
+  }
 
   function flashConcerned() {
     if (greeted) return;
