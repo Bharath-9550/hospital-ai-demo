@@ -3836,7 +3836,7 @@
      before stepping aside. It observes only, never touches auth. */
   #dbBot { position:fixed; left:12px; top:12px; width:108px; z-index:1200; pointer-events:none; font-family:'Segoe UI', system-ui, sans-serif; transition:left .38s ease, top .38s ease, opacity .5s ease, visibility .5s ease; }
   #dbBot.db-bot-bye { opacity:0; visibility:hidden; }
-  #dbBot .db-bot-stage { position:relative; transform-origin:50% 92%; }
+  #dbBot .db-bot-stage { position:relative; transform-origin:50% 92%; transition:transform 1.2s ease; }
   @keyframes dbBotIdle { 0%, 100% { transform:translateY(0) rotate(-1.7deg); } 50% { transform:translateY(-7px) rotate(1.7deg); } }
   #dbBot.db-bot-hop .db-bot-stage { animation:none; }
   @keyframes dbBotHop { 0% { transform:translateY(0) scale(1, 1); } 35% { transform:translateY(-15px) scale(.97, 1.03); } 70% { transform:translateY(0) scale(1.04, .94); } 100% { transform:translateY(0) scale(1, 1); } }
@@ -3878,6 +3878,8 @@
   Object.keys(SRC).forEach(function (k) { var i = new Image(); i.src = SRC[k]; });
   var reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   var face = 'normal', greeted = false, lastRect = null;
+  var eyeScaleTarget = 1, eyeScale = 1;
+  var stage = bot.querySelector('.db-bot-stage');
   var flashTimer = null, waveTimer = null, bubbleTimer = null, byeTimer = null;
 
   function gateShown() { var g = document.getElementById('authGate'); return !!g && window.getComputedStyle(g).display !== 'none'; }
@@ -3935,15 +3937,18 @@
       if (now - lastPtr > 3500 && now > nextWander) {
         tx = (Math.random() * 2 - 1) * 9; ty = (Math.random() * 2 - 1) * 6;
         if (Math.random() < 0.3) { tx = 0; ty = 0; }
+        if (Math.random() < 0.22) { eyeScaleTarget = Math.random() < 0.5 ? 1.15 : 0.86; setTimeout(function () { eyeScaleTarget = 1; }, 1500); }
         nextWander = now + 2400 + Math.random() * 1600;
       }
       gx += (tx - gx) * 0.12; gy += (ty - gy) * 0.12;
+      eyeScale += (eyeScaleTarget - eyeScale) * 0.08;
       bot.classList.add('db-gaze');
       ctx.clearRect(0, 0, 480, 480);
       ctx.drawImage(off, 0, 0);
       for (var i = 0; i < EYES.length; i++) {
         ctx.save();
         ctx.beginPath(); ctx.arc(EYES[i][0], EYES[i][1], ER, 0, 7); ctx.clip();
+        ctx.translate(EYES[i][0], EYES[i][1]); ctx.scale(eyeScale, eyeScale); ctx.translate(-EYES[i][0], -EYES[i][1]);
         ctx.drawImage(off, gx, gy);
         ctx.restore();
       }
@@ -4005,6 +4010,49 @@
     if (el) new MutationObserver(check).observe(el, { attributes: true, attributeFilter: ['style', 'class', 'hidden'] });
   });
   document.addEventListener('click', function () { setTimeout(check, 350); });
+  /* Gestures (Nov 26, 2026): the bot stays on its perch, but it is
+     alive: a gentle head tilt, a hello wave with a Hello bubble
+     when the page opens and now and then after, a happy face, and
+     moments of big eyes (driven through eyeScaleTarget). Gestures
+     never interrupt an error or the welcome greeting. */
+  var gesturing = false;
+  function gesture(kind) {
+    if (reduced || greeted || gesturing) return;
+    if (!gateShown() || face !== 'normal') return;
+    gesturing = true;
+    if (kind === 'hello') {
+      setFace('wave');
+      bubble.textContent = 'Hello!';
+      bubble.classList.add('db-show');
+      setTimeout(function () {
+        if (!greeted) bubble.classList.remove('db-show');
+        setFace('normal'); gesturing = false;
+      }, 2200);
+    } else if (kind === 'happy') {
+      setFace('happy');
+      setTimeout(function () { setFace('normal'); gesturing = false; }, 1600);
+    } else {
+      eyeScaleTarget = 1.22;
+      setTimeout(function () { eyeScaleTarget = 1; gesturing = false; }, 1400);
+    }
+  }
+  if (!reduced) {
+    if (stage) {
+      var tilts = [-3, 0, 2.5, 0], ti = 0;
+      setInterval(function () {
+        if (!gateShown()) return;
+        ti = (ti + 1) % tilts.length;
+        stage.style.transform = 'rotate(' + tilts[ti] + 'deg)';
+      }, 4200);
+    }
+    setTimeout(function () { gesture('hello'); }, 900);
+    (function nextGesture() {
+      setTimeout(function () {
+        gesture(['hello', 'happy', 'bigeyes'][Math.floor(Math.random() * 3)]);
+        nextGesture();
+      }, 20000 + Math.random() * 18000);
+    })();
+  }
   check();
   place();
 })();

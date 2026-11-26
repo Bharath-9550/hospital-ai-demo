@@ -2395,7 +2395,7 @@
      heart and antenna, and swaps faces with the moment: shy on the
      password screen, concerned on an error, waving at sign-in. */
   #paBot { position:absolute; left:12px; top:12px; width:118px; z-index:5; pointer-events:none; font-family:'Segoe UI', system-ui, sans-serif; transition:left .38s ease, top .38s ease; }
-  #paBot .pa-bot-stage { position:relative; transform-origin:50% 92%; }
+  #paBot .pa-bot-stage { position:relative; transform-origin:50% 92%; transition:transform 1.2s ease; }
   @keyframes paBotIdle { 0%, 100% { transform:translateY(0) rotate(-1.7deg); } 50% { transform:translateY(-7px) rotate(1.7deg); } }
   #paBot.pa-bot-hop .pa-bot-stage { animation:none; }
   #paBot.pa-bot-busy .pa-bot-stage { animation:none; }
@@ -3051,6 +3051,8 @@
   Object.keys(SRC).forEach(function (k) { var i = new Image(); i.src = SRC[k]; });
   var reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   var base = 'normal', face = 'normal', celebrating = false;
+  var eyeScaleTarget = 1, eyeScale = 1;
+  var stage = bot.querySelector('.pa-bot-stage');
   var flashTimer = null, waveTimer = null, bubbleTimer = null, typeSafety = null;
   var busy = false, busySince = 0, holdUntil = 0;
 
@@ -3096,7 +3098,7 @@
      still; only the pupils move, drawn on a canvas laid over the
      still picture. They follow the pointer, wander on their own
      when no pointer is around, and dart while the page works. */
-  var cv = $('paBotCanvas');
+  var cv = document.getElementById('paBotCanvas');
   if (cv && cv.getContext && !reduced) {
     var ctx = cv.getContext('2d');
     var off = document.createElement('canvas'); off.width = 480; off.height = 480;
@@ -3123,15 +3125,18 @@
       if (now - lastPtr > 3500 && now > nextWander) {
         tx = (Math.random() * 2 - 1) * 9; ty = (Math.random() * 2 - 1) * 6;
         if (Math.random() < 0.3) { tx = 0; ty = 0; }
+        if (Math.random() < 0.22) { eyeScaleTarget = Math.random() < 0.5 ? 1.15 : 0.86; setTimeout(function () { eyeScaleTarget = 1; }, 1500); }
         nextWander = now + (busy ? 700 : 2400 + Math.random() * 1600);
       }
       gx += (tx - gx) * 0.12; gy += (ty - gy) * 0.12;
+      eyeScale += (eyeScaleTarget - eyeScale) * 0.08;
       bot.classList.add('pa-gaze');
       ctx.clearRect(0, 0, 480, 480);
       ctx.drawImage(off, 0, 0);
       for (var i = 0; i < EYES.length; i++) {
         ctx.save();
         ctx.beginPath(); ctx.arc(EYES[i][0], EYES[i][1], ER, 0, 7); ctx.clip();
+        ctx.translate(EYES[i][0], EYES[i][1]); ctx.scale(eyeScale, eyeScale); ctx.translate(-EYES[i][0], -EYES[i][1]);
         ctx.drawImage(off, gx, gy);
         ctx.restore();
       }
@@ -3201,6 +3206,56 @@
   }).observe(doneTextEl, { childList: true, characterData: true, subtree: true });
   var sendBtn = document.getElementById('paSend');
   if (sendBtn) sendBtn.addEventListener('click', function () { startBusy(); });
+  /* Gestures (Nov 26, 2026): the bot stays on its perch, but it is
+     alive: a gentle head tilt, a hello wave with a Hi bubble when
+     the page opens and now and then after, a shy peek, a happy
+     face, and moments of big eyes (driven through eyeScaleTarget).
+     Gestures never interrupt typing, verifying, an error, or the
+     welcome celebration, and they only play on the first screen. */
+  var gesturing = false;
+  function gesture(kind) {
+    if (reduced || celebrating || busy || gesturing) return;
+    if (!gate || gate.hidden) return;
+    if (base !== 'normal' || face !== 'normal') return;
+    var phoneEl = document.querySelector('[data-pa="phone"]');
+    if (phoneEl && phoneEl.hidden) return;
+    gesturing = true;
+    if (kind === 'hello') {
+      setFace('wave');
+      bubble.textContent = 'Hi!';
+      bubble.classList.add('pa-show');
+      setTimeout(function () {
+        if (!celebrating) bubble.classList.remove('pa-show');
+        applyBase(); gesturing = false;
+      }, 2200);
+    } else if (kind === 'shy') {
+      setFace('shy');
+      setTimeout(function () { applyBase(); gesturing = false; }, 2000);
+    } else if (kind === 'happy') {
+      setFace('happy');
+      setTimeout(function () { applyBase(); gesturing = false; }, 1600);
+    } else {
+      eyeScaleTarget = 1.22;
+      setTimeout(function () { eyeScaleTarget = 1; gesturing = false; }, 1400);
+    }
+  }
+  if (!reduced) {
+    if (stage) {
+      var tilts = [-3, 0, 2.5, 0], ti = 0;
+      setInterval(function () {
+        if (!gate || gate.hidden) return;
+        ti = (ti + 1) % tilts.length;
+        stage.style.transform = 'rotate(' + tilts[ti] + 'deg)';
+      }, 4200);
+    }
+    setTimeout(function () { gesture('hello'); }, 900);
+    (function nextGesture() {
+      setTimeout(function () {
+        gesture(['hello', 'shy', 'happy', 'bigeyes'][Math.floor(Math.random() * 4)]);
+        nextGesture();
+      }, 18000 + Math.random() * 17000);
+    })();
+  }
   place();
 })();
 </script>
