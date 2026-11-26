@@ -3827,49 +3827,80 @@
 
 
 <style>
-  /* Mascot bot (image edition, Nov 25, 2026): the same 3D greeter as
-     the patient app. Glows ride over its heart and antenna, it leans
-     toward the pointer, turns concerned when a sign-in error shows,
-     and celebrates a successful sign-in before stepping aside. It
-     observes only and never touches auth state. */
-  #dbBot { position:fixed; left:18px; bottom:16px; width:108px; z-index:1200; pointer-events:none; font-family:'Segoe UI', system-ui, sans-serif; transition:opacity .5s ease, visibility .5s ease; }
+  /* Mascot bot (perch edition, Nov 25, 2026): the 3D greeter sits on
+     top of the staff sign-in card, placed there by its script from
+     the card's real position. It sways and bobs in plain sight, hops
+     now and then, leans toward the pointer, carries soft glows over
+     its heart and antenna, turns concerned when a sign-in error
+     shows, and celebrates a successful sign-in from its perch
+     before stepping aside. It observes only, never touches auth. */
+  #dbBot { position:fixed; left:12px; top:12px; width:108px; z-index:1200; pointer-events:none; font-family:'Segoe UI', system-ui, sans-serif; transition:left .38s ease, top .38s ease, opacity .5s ease, visibility .5s ease; }
   #dbBot.db-bot-bye { opacity:0; visibility:hidden; }
-  #dbBot .db-bot-stage { position:relative; animation:dbBotBob 3.2s ease-in-out infinite alternate; }
-  @keyframes dbBotBob { from { transform:translateY(0); } to { transform:translateY(-5px); } }
+  #dbBot .db-bot-stage { position:relative; transform-origin:50% 92%; animation:dbBotIdle 3.6s ease-in-out infinite; }
+  @keyframes dbBotIdle { 0%, 100% { transform:translateY(0) rotate(-1.7deg); } 50% { transform:translateY(-7px) rotate(1.7deg); } }
+  #dbBot.db-bot-hop .db-bot-stage { animation:dbBotHop .62s ease; }
+  @keyframes dbBotHop { 0% { transform:translateY(0) scale(1, 1); } 35% { transform:translateY(-15px) scale(.97, 1.03); } 70% { transform:translateY(0) scale(1.04, .94); } 100% { transform:translateY(0) scale(1, 1); } }
   #dbBotImg { width:100%; display:block; border-radius:24px; transform-origin:50% 85%; }
   #dbBot .db-bot-glow { position:absolute; border-radius:50%; pointer-events:none; }
-  #dbBot .db-bot-glow-heart { left:50%; top:73%; width:52%; height:34%; transform:translate(-50%, -50%); background:radial-gradient(closest-side, rgba(255,96,96,.55), rgba(255,96,96,0) 72%); animation:dbBotHeart 1.7s ease-in-out infinite; }
-  @keyframes dbBotHeart { 0%, 100% { opacity:.45; transform:translate(-50%, -50%) scale(1); } 12% { opacity:.95; transform:translate(-50%, -50%) scale(1.14); } 24% { opacity:.6; transform:translate(-50%, -50%) scale(1.03); } 36% { opacity:.9; transform:translate(-50%, -50%) scale(1.1); } 55% { opacity:.45; transform:translate(-50%, -50%) scale(1); } }
-  #dbBot .db-bot-glow-ant { left:50%; top:13.5%; width:34%; height:22%; transform:translate(-50%, -50%); background:radial-gradient(closest-side, rgba(255,205,84,.75), rgba(255,205,84,0) 70%); animation:dbBotAnt 2.6s ease-in-out infinite alternate; }
-  @keyframes dbBotAnt { from { opacity:.5; transform:translate(-50%, -50%) scale(1); } to { opacity:.95; transform:translate(-50%, -50%) scale(1.18); } }
-  #dbBot .db-bot-bubble { position:absolute; left:0; bottom:calc(100% + 10px); background:#ffffff; color:#17323a; border:1px solid #dcebe6; padding:8px 13px; border-radius:14px; font-size:13.5px; font-weight:700; white-space:nowrap; box-shadow:0 10px 22px rgba(8,60,66,.18); opacity:0; transform:scale(.85); transform-origin:bottom left; transition:opacity .25s ease, transform .25s ease; z-index:6; }
-  #dbBot .db-bot-bubble::after { content:""; position:absolute; left:36px; bottom:-6px; width:12px; height:12px; background:#ffffff; border-right:1px solid #dcebe6; border-bottom:1px solid #dcebe6; transform:rotate(45deg); }
-  #dbBot .db-bot-bubble.db-show { opacity:1; transform:scale(1); }
+  #dbBot .db-bot-glow-heart { left:50%; top:73%; width:52%; height:34%; transform:translate(-50%, -50%); background:radial-gradient(closest-side, rgba(255,96,96,.6), rgba(255,96,96,0) 72%); animation:dbBotHeart 1.7s ease-in-out infinite; }
+  @keyframes dbBotHeart { 0%, 100% { opacity:.55; transform:translate(-50%, -50%) scale(1); } 12% { opacity:1; transform:translate(-50%, -50%) scale(1.15); } 24% { opacity:.7; transform:translate(-50%, -50%) scale(1.03); } 36% { opacity:.95; transform:translate(-50%, -50%) scale(1.11); } 55% { opacity:.55; transform:translate(-50%, -50%) scale(1); } }
+  #dbBot .db-bot-glow-ant { left:50%; top:13.5%; width:34%; height:22%; transform:translate(-50%, -50%); background:radial-gradient(closest-side, rgba(255,205,84,.8), rgba(255,205,84,0) 70%); animation:dbBotAnt 2.6s ease-in-out infinite alternate; }
+  @keyframes dbBotAnt { from { opacity:.6; transform:translate(-50%, -50%) scale(1); } to { opacity:1; transform:translate(-50%, -50%) scale(1.2); } }
+  #dbBot .db-bot-bubble { position:absolute; left:50%; top:calc(100% + 8px); transform:translateX(-50%) scale(.85); background:#ffffff; color:#17323a; border:1px solid #dcebe6; padding:8px 13px; border-radius:14px; font-size:13.5px; font-weight:700; white-space:nowrap; box-shadow:0 10px 22px rgba(8,60,66,.18); opacity:0; transition:opacity .25s ease, transform .25s ease; z-index:6; }
+  #dbBot .db-bot-bubble::after { content:""; position:absolute; left:50%; top:-6px; margin-left:-6px; width:12px; height:12px; background:#ffffff; border-left:1px solid #dcebe6; border-top:1px solid #dcebe6; transform:rotate(45deg); }
+  #dbBot .db-bot-bubble.db-show { opacity:1; transform:translateX(-50%) scale(1); }
   #dbBot.db-bot-happy #dbBotImg { animation:dbBotJump .55s ease 2; }
   @keyframes dbBotJump { 0%, 100% { transform:translateY(0); } 40% { transform:translateY(-11px); } }
   #dbBot.db-bot-wave #dbBotImg { animation:dbBotWiggle .45s ease-in-out infinite alternate; }
   @keyframes dbBotWiggle { from { transform:rotate(-2.6deg); } to { transform:rotate(2.6deg); } }
-  @media (max-width: 700px) { #dbBot { width:84px; left:12px; bottom:12px; } }
-  @media (prefers-reduced-motion: reduce) { #dbBot .db-bot-stage, #dbBot .db-bot-glow-heart, #dbBot .db-bot-glow-ant, #dbBot.db-bot-happy #dbBotImg, #dbBot.db-bot-wave #dbBotImg { animation:none; } }
+  @media (max-width: 700px) { #dbBot { width:84px; } }
+  @media (prefers-reduced-motion: reduce) { #dbBot .db-bot-stage, #dbBot.db-bot-hop .db-bot-stage, #dbBot .db-bot-glow-heart, #dbBot .db-bot-glow-ant, #dbBot.db-bot-happy #dbBotImg, #dbBot.db-bot-wave #dbBotImg { animation:none; } }
 </style>
 <div id="dbBot" aria-hidden="true">
   <div class="db-bot-bubble" id="dbBotBubble"></div>
   <div class="db-bot-stage"><img id="dbBotImg" src="bot-normal.webp" alt=""><div class="db-bot-glow db-bot-glow-ant"></div><div class="db-bot-glow db-bot-glow-heart"></div></div>
 </div>
 <script>
-/* Mascot bot behaviour (image edition, Nov 25, 2026): observes the
-   auth gate and the app shell. Concerned when a sign-in error shows;
-   a waving celebration on success, then it steps aside. */
+/* Mascot bot behaviour (perch edition, Nov 25, 2026): the script
+   measures the sign-in card and parks the bot on its top edge. On a
+   successful sign-in the bot celebrates from that perch, then steps
+   aside; on sign-out it returns. Concerned when an error shows. */
 (function () {
   var bot = document.getElementById('dbBot');
   if (!bot) return;
   var img = document.getElementById('dbBotImg');
   var bubble = document.getElementById('dbBotBubble');
+  var card = document.querySelector('.auth-card');
   var SRC = { normal: 'bot-normal.webp', happy: 'bot-happy.webp', wave: 'bot-wave.webp', concerned: 'bot-concerned.webp' };
   Object.keys(SRC).forEach(function (k) { var i = new Image(); i.src = SRC[k]; });
   var reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-  var face = 'normal', greeted = false;
+  var face = 'normal', greeted = false, lastRect = null;
   var flashTimer = null, waveTimer = null, bubbleTimer = null, byeTimer = null;
+
+  function gateShown() { var g = document.getElementById('authGate'); return !!g && window.getComputedStyle(g).display !== 'none'; }
+  function place() {
+    var r = null;
+    if (card && gateShown()) { var cr = card.getBoundingClientRect(); if (cr.width) { r = cr; lastRect = cr; } }
+    if (!r) r = lastRect;
+    var w = bot.offsetWidth, h = bot.offsetHeight;
+    var left, top;
+    if (r) { left = r.left + r.width / 2 - w / 2; top = r.top - h * 0.58; }
+    else { left = window.innerWidth / 2 - w / 2; top = Math.max(10, window.innerHeight * 0.1); }
+    if (top < 6) top = 6;
+    bot.style.left = left + 'px';
+    bot.style.top = top + 'px';
+  }
+  function placeSoon() { setTimeout(place, 60); setTimeout(place, 320); }
+  window.addEventListener('resize', place);
+  window.addEventListener('load', placeSoon);
+  placeSoon();
+
+  setInterval(function () {
+    if (reduced || greeted || !gateShown()) return;
+    if (document.visibilityState && document.visibilityState !== 'visible') return;
+    bot.classList.add('db-bot-hop');
+    setTimeout(function () { bot.classList.remove('db-bot-hop'); }, 680);
+  }, 8000);
 
   function setFace(f) { if (face === f) return; face = f; img.src = SRC[f]; }
   window.addEventListener('pointermove', function (e) {
@@ -3885,7 +3916,7 @@
     if (greeted) return;
     setFace('concerned');
     clearTimeout(flashTimer);
-    flashTimer = setTimeout(function () { setFace('normal'); }, 2400);
+    flashTimer = setTimeout(function () { setFace('normal'); }, 4000);
   }
   ['authAlert', 'mfaAlert'].forEach(function (id) {
     var el = document.getElementById(id);
@@ -3900,6 +3931,7 @@
     var gate = document.getElementById('authGate');
     if (shown(app) && !greeted) {
       greeted = true;
+      place();
       bot.classList.remove('db-bot-bye');
       bot.classList.add('db-bot-happy');
       img.style.transform = '';
@@ -3915,7 +3947,7 @@
       waveTimer = setInterval(function () {
         waves++;
         setFace(waves % 2 ? 'happy' : 'wave');
-        if (waves >= 6) { clearInterval(waveTimer); bot.classList.remove('db-bot-wave'); setFace('happy'); }
+        if (waves >= 12) { clearInterval(waveTimer); bot.classList.remove('db-bot-wave'); setFace('happy'); }
       }, 430);
     } else if (shown(gate) && greeted) {
       greeted = false;
@@ -3925,6 +3957,9 @@
       bot.classList.remove('db-bot-wave');
       bubble.classList.remove('db-show');
       setFace('normal');
+      placeSoon();
+    } else if (shown(gate)) {
+      place();
     }
   }
   ['appRoot', 'authGate'].forEach(function (id) {
@@ -3933,6 +3968,7 @@
   });
   document.addEventListener('click', function () { setTimeout(check, 350); });
   check();
+  place();
 })();
 </script>
 

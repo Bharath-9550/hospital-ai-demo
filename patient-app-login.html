@@ -2387,30 +2387,35 @@
   #paLogin .pa-trust span.pa-trust-pill { flex:0 1 auto; flex-direction:row; align-items:center; gap:8px; background:#eef7f4; border:1px solid #dcebe6; border-radius:999px; padding:9px 16px; font-size:12.5px; font-weight:600; color:#47636b; }
   @media (max-width: 940px) { #paLogin { justify-content:center; } #paLogin .pa-hero { display:none; } #paLogin .pa-card { margin:0; } }
 
-  /* Mascot bot (image edition, Nov 25, 2026): the 3D bot lives in the
-     gate's corner. Soft CSS glows ride over its heart and antenna, it
-     leans toward the pointer, and its face swaps with the moment: shy
-     on the password screen, concerned when an error shows, and a
-     waving celebration when sign-in completes. Presentation only: it
-     watches the screens and never touches the sign-in logic. */
-  #paBot { position:absolute; left:20px; bottom:16px; width:118px; z-index:5; pointer-events:none; font-family:'Segoe UI', system-ui, sans-serif; }
-  #paBot .pa-bot-stage { position:relative; animation:paBotBob 3.2s ease-in-out infinite alternate; }
-  @keyframes paBotBob { from { transform:translateY(0); } to { transform:translateY(-5px); } }
+  /* Mascot bot (perch edition, Nov 25, 2026): the 3D bot sits on top
+     of the login card, placed there by its script from the card's real
+     position, and glides when the card changes height between
+     screens. It sways and bobs where everyone can see it, hops now
+     and then, leans toward the pointer, carries soft glows over its
+     heart and antenna, and swaps faces with the moment: shy on the
+     password screen, concerned on an error, waving at sign-in. */
+  #paBot { position:absolute; left:12px; top:12px; width:118px; z-index:5; pointer-events:none; font-family:'Segoe UI', system-ui, sans-serif; transition:left .38s ease, top .38s ease; }
+  #paBot .pa-bot-stage { position:relative; transform-origin:50% 92%; animation:paBotIdle 3.6s ease-in-out infinite; }
+  @keyframes paBotIdle { 0%, 100% { transform:translateY(0) rotate(-1.7deg); } 50% { transform:translateY(-7px) rotate(1.7deg); } }
+  #paBot.pa-bot-hop .pa-bot-stage { animation:paBotHop .62s ease; }
+  #paBot.pa-bot-busy .pa-bot-stage { animation:paBotBusy .38s ease-in-out infinite; }
+  @keyframes paBotBusy { 0%, 100% { transform:translateY(0) rotate(-2.2deg); } 50% { transform:translateY(-9px) rotate(2.2deg); } }
+  @keyframes paBotHop { 0% { transform:translateY(0) scale(1, 1); } 35% { transform:translateY(-15px) scale(.97, 1.03); } 70% { transform:translateY(0) scale(1.04, .94); } 100% { transform:translateY(0) scale(1, 1); } }
   #paBotImg { width:100%; display:block; border-radius:26px; transform-origin:50% 85%; }
   #paBot .pa-bot-glow { position:absolute; border-radius:50%; pointer-events:none; }
-  #paBot .pa-bot-glow-heart { left:50%; top:73%; width:52%; height:34%; transform:translate(-50%, -50%); background:radial-gradient(closest-side, rgba(255,96,96,.55), rgba(255,96,96,0) 72%); animation:paBotHeart 1.7s ease-in-out infinite; }
-  @keyframes paBotHeart { 0%, 100% { opacity:.45; transform:translate(-50%, -50%) scale(1); } 12% { opacity:.95; transform:translate(-50%, -50%) scale(1.14); } 24% { opacity:.6; transform:translate(-50%, -50%) scale(1.03); } 36% { opacity:.9; transform:translate(-50%, -50%) scale(1.1); } 55% { opacity:.45; transform:translate(-50%, -50%) scale(1); } }
-  #paBot .pa-bot-glow-ant { left:50%; top:13.5%; width:34%; height:22%; transform:translate(-50%, -50%); background:radial-gradient(closest-side, rgba(255,205,84,.75), rgba(255,205,84,0) 70%); animation:paBotAnt 2.6s ease-in-out infinite alternate; }
-  @keyframes paBotAnt { from { opacity:.5; transform:translate(-50%, -50%) scale(1); } to { opacity:.95; transform:translate(-50%, -50%) scale(1.18); } }
-  #paBot .pa-bot-bubble { position:absolute; left:0; bottom:calc(100% + 10px); background:#ffffff; color:#17323a; border:1px solid #dcebe6; padding:8px 13px; border-radius:14px; font-size:13.5px; font-weight:700; white-space:nowrap; box-shadow:0 10px 22px rgba(8,60,66,.18); opacity:0; transform:scale(.85); transform-origin:bottom left; transition:opacity .25s ease, transform .25s ease; z-index:6; }
-  #paBot .pa-bot-bubble::after { content:""; position:absolute; left:36px; bottom:-6px; width:12px; height:12px; background:#ffffff; border-right:1px solid #dcebe6; border-bottom:1px solid #dcebe6; transform:rotate(45deg); }
-  #paBot .pa-bot-bubble.pa-show { opacity:1; transform:scale(1); }
+  #paBot .pa-bot-glow-heart { left:50%; top:73%; width:52%; height:34%; transform:translate(-50%, -50%); background:radial-gradient(closest-side, rgba(255,96,96,.6), rgba(255,96,96,0) 72%); animation:paBotHeart 1.7s ease-in-out infinite; }
+  @keyframes paBotHeart { 0%, 100% { opacity:.55; transform:translate(-50%, -50%) scale(1); } 12% { opacity:1; transform:translate(-50%, -50%) scale(1.15); } 24% { opacity:.7; transform:translate(-50%, -50%) scale(1.03); } 36% { opacity:.95; transform:translate(-50%, -50%) scale(1.11); } 55% { opacity:.55; transform:translate(-50%, -50%) scale(1); } }
+  #paBot .pa-bot-glow-ant { left:50%; top:13.5%; width:34%; height:22%; transform:translate(-50%, -50%); background:radial-gradient(closest-side, rgba(255,205,84,.8), rgba(255,205,84,0) 70%); animation:paBotAnt 2.6s ease-in-out infinite alternate; }
+  @keyframes paBotAnt { from { opacity:.6; transform:translate(-50%, -50%) scale(1); } to { opacity:1; transform:translate(-50%, -50%) scale(1.2); } }
+  #paBot .pa-bot-bubble { position:absolute; left:50%; top:calc(100% + 8px); transform:translateX(-50%) scale(.85); background:#ffffff; color:#17323a; border:1px solid #dcebe6; padding:8px 13px; border-radius:14px; font-size:13.5px; font-weight:700; white-space:nowrap; box-shadow:0 10px 22px rgba(8,60,66,.18); opacity:0; transition:opacity .25s ease, transform .25s ease; z-index:6; }
+  #paBot .pa-bot-bubble::after { content:""; position:absolute; left:50%; top:-6px; margin-left:-6px; width:12px; height:12px; background:#ffffff; border-left:1px solid #dcebe6; border-top:1px solid #dcebe6; transform:rotate(45deg); }
+  #paBot .pa-bot-bubble.pa-show { opacity:1; transform:translateX(-50%) scale(1); }
   #paBot.pa-bot-happy #paBotImg { animation:paBotJump .55s ease 2; }
   @keyframes paBotJump { 0%, 100% { transform:translateY(0); } 40% { transform:translateY(-11px); } }
   #paBot.pa-bot-wave #paBotImg { animation:paBotWiggle .45s ease-in-out infinite alternate; }
   @keyframes paBotWiggle { from { transform:rotate(-2.6deg); } to { transform:rotate(2.6deg); } }
-  @media (max-width: 940px) { #paLogin { padding-bottom:104px; box-sizing:border-box; } #paLogin .pa-card { max-height:calc(100dvh - 136px); } #paBot { width:84px; left:12px; bottom:12px; } }
-  @media (prefers-reduced-motion: reduce) { #paBot .pa-bot-stage, #paBot .pa-bot-glow-heart, #paBot .pa-bot-glow-ant, #paBot.pa-bot-happy #paBotImg, #paBot.pa-bot-wave #paBotImg { animation:none; } }
+  @media (max-width: 940px) { #paLogin .pa-card { max-height:calc(100dvh - 112px); } #paBot { width:84px; } }
+  @media (prefers-reduced-motion: reduce) { #paBot .pa-bot-stage, #paBot.pa-bot-hop .pa-bot-stage, #paBot.pa-bot-busy .pa-bot-stage, #paBot .pa-bot-glow-heart, #paBot .pa-bot-glow-ant, #paBot.pa-bot-happy #paBotImg, #paBot.pa-bot-wave #paBotImg { animation:none; } }
 </style>
 
 <div id="paLogin" hidden>
@@ -3025,23 +3030,65 @@
 </script>
 
 <script>
-/* Mascot bot behaviour (image edition, Nov 25, 2026): observes only.
-   Faces: normal, shy (the password screen), concerned (an error
-   shows), happy and waving (sign-in complete, with the welcome
-   bubble). It never calls the auth APIs or changes sign-in state. */
+/* Mascot bot behaviour (perch edition, Nov 25, 2026): observes only.
+   The script measures the login card and parks the bot on its top
+   edge, re-parking whenever the card changes height. Faces: normal,
+   shy (the password screen), concerned (an error shows), happy and
+   waving (sign-in complete, with the welcome bubble). It never calls
+   the auth APIs or changes sign-in state. */
 (function () {
   var bot = document.getElementById('paBot');
   if (!bot) return;
   var img = document.getElementById('paBotImg');
   var bubble = document.getElementById('paBotBubble');
+  var gate = document.getElementById('paLogin');
+  var card = document.querySelector('#paLogin .pa-card');
   var SRC = { normal: 'bot-normal.webp', shy: 'bot-shy.webp', happy: 'bot-happy.webp', wave: 'bot-wave.webp', concerned: 'bot-concerned.webp' };
   Object.keys(SRC).forEach(function (k) { var i = new Image(); i.src = SRC[k]; });
   var reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   var base = 'normal', face = 'normal', celebrating = false;
-  var flashTimer = null, waveTimer = null, bubbleTimer = null;
+  var flashTimer = null, waveTimer = null, bubbleTimer = null, typeSafety = null;
+  var busy = false;
 
-  function setFace(f) { if (face === f) return; face = f; img.src = SRC[f]; }
+  function place() {
+    if (!card || (gate && gate.hidden)) return;
+    var r = card.getBoundingClientRect();
+    if (!r.width) return;
+    var w = bot.offsetWidth, h = bot.offsetHeight;
+    var left = r.left + r.width / 2 - w / 2;
+    var top = r.top - h * 0.58;
+    if (top < 6) top = 6;
+    bot.style.left = left + 'px';
+    bot.style.top = top + 'px';
+  }
+  function placeSoon() { setTimeout(place, 60); setTimeout(place, 320); }
+  window.addEventListener('resize', place);
+  window.addEventListener('load', placeSoon);
+  placeSoon();
+
+  setInterval(function () {
+    if (reduced || celebrating) return;
+    if (gate && gate.hidden) return;
+    if (document.visibilityState && document.visibilityState !== 'visible') return;
+    bot.classList.add('pa-bot-hop');
+    setTimeout(function () { bot.classList.remove('pa-bot-hop'); }, 680);
+  }, 8000);
+
+  function setFace(f) { stopBusy(); if (face === f) return; face = f; img.src = SRC[f]; }
   function applyBase() { if (!celebrating) setFace(base); }
+  function startBusy() {
+    if (busy || celebrating || reduced) return;
+    busy = true;
+    bot.classList.add('pa-bot-busy');
+    clearTimeout(typeSafety);
+    typeSafety = setTimeout(stopBusy, 7000);
+  }
+  function stopBusy() {
+    if (!busy) return;
+    busy = false; clearTimeout(typeSafety);
+    bot.classList.remove('pa-bot-busy');
+    img.src = SRC[face];
+  }
 
   window.addEventListener('pointermove', function (e) {
     if (reduced || celebrating) return;
@@ -3056,7 +3103,7 @@
     if (celebrating) return;
     setFace('concerned');
     clearTimeout(flashTimer);
-    flashTimer = setTimeout(applyBase, 2400);
+    flashTimer = setTimeout(applyBase, 4000);
   }
   ['paPhoneErr', 'paPassErr', 'paOtpErr', 'paNameErr', 'paSetPassErr'].forEach(function (id) {
     var el = document.getElementById(id);
@@ -3080,7 +3127,7 @@
     waveTimer = setInterval(function () {
       waves++;
       setFace(waves % 2 ? 'happy' : 'wave');
-      if (waves >= 6) { clearInterval(waveTimer); bot.classList.remove('pa-bot-wave'); img.style.transform = ''; setFace('happy'); }
+      if (waves >= 12) { clearInterval(waveTimer); bot.classList.remove('pa-bot-wave'); img.style.transform = ''; setFace('happy'); }
     }, 430);
   }
   function resetAll() {
@@ -3095,7 +3142,7 @@
   }
   function watch(screen, fn) {
     var el = document.querySelector('[data-pa="' + screen + '"]');
-    if (el) new MutationObserver(function () { if (!el.hidden) fn(); }).observe(el, { attributes: true, attributeFilter: ['hidden'] });
+    if (el) new MutationObserver(function () { if (!el.hidden) { fn(); placeSoon(); } }).observe(el, { attributes: true, attributeFilter: ['hidden'] });
   }
   watch('pass', function () { base = 'shy'; applyBase(); });
   watch('phone', resetAll);
@@ -3103,6 +3150,10 @@
   watch('name', function () { base = 'normal'; applyBase(); });
   watch('profile', function () { base = 'normal'; applyBase(); });
   watch('done', celebrate);
+  watch('verifying', startBusy);
+  var sendBtn = document.getElementById('paSend');
+  if (sendBtn) sendBtn.addEventListener('click', function () { startBusy(); });
+  place();
 })();
 </script>
 
