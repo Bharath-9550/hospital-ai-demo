@@ -3115,15 +3115,7 @@
     var pctx = patch.getContext('2d');
     var blinkStart = 0, nextBlink = 2400 + Math.random() * 2000, blinkAgain = false;
     var mask = document.createElement('canvas'); mask.width = 480; mask.height = 480;
-    (function () {
-      var mctx = mask.getContext('2d');
-      for (var mi = 0; mi < EYES.length; mi++) {
-        var gr = mctx.createRadialGradient(EYES[mi][0], EYES[mi][1], 38, EYES[mi][0], EYES[mi][1], 50);
-        gr.addColorStop(0, 'rgba(0,0,0,1)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
-        mctx.fillStyle = gr;
-        mctx.fillRect(EYES[mi][0] - 56, EYES[mi][1] - 56, 112, 112);
-      }
-    })();
+    var mctx = mask.getContext('2d');
     function lookAt(x, y) {
       lastPtr = Date.now();
       var r = bot.getBoundingClientRect();
@@ -3132,7 +3124,7 @@
       var dist = Math.sqrt(dx * dx + dy * dy);
       if (dist < 1) return;
       var f = Math.min(1, dist / 140);
-      tx = (dx / dist) * 22 * f; ty = (dy / dist) * 11 * f; if (ty < -9) ty = -9;
+      tx = (dx / dist) * 22 * f; ty = (dy / dist) * 11 * f; if (ty < -9) ty = -9; if (ty > 8) ty = 8;
     }
     window.addEventListener('pointermove', function (e) { lookAt(e.clientX, e.clientY); }, { passive: true });
     window.addEventListener('pointerdown', function (e) { lookAt(e.clientX, e.clientY); }, { passive: true });
@@ -3165,11 +3157,26 @@
       pctx.clearRect(0, 0, 480, 480);
       for (var i = 0; i < EYES.length; i++) {
         pctx.save();
-        pctx.beginPath(); pctx.arc(EYES[i][0], EYES[i][1], ER + 8, 0, 7); pctx.clip();
+        pctx.beginPath(); pctx.arc(EYES[i][0] + gx * eyeScale, EYES[i][1] + gy * eyeScale, 26, 0, 7); pctx.clip();
         pctx.translate(EYES[i][0], EYES[i][1]); pctx.scale(eyeScale, eyeScale); pctx.translate(-EYES[i][0], -EYES[i][1]);
         pctx.drawImage(off, gx, gy);
         pctx.restore();
       }
+      mctx.clearRect(0, 0, 480, 480);
+      for (var mi = 0; mi < EYES.length; mi++) {
+        var gr = mctx.createRadialGradient(EYES[mi][0] + gx * eyeScale, EYES[mi][1] + gy * eyeScale, 21, EYES[mi][0] + gx * eyeScale, EYES[mi][1] + gy * eyeScale, 26);
+        gr.addColorStop(0, 'rgba(0,0,0,1)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+        mctx.fillStyle = gr;
+        mctx.fillRect(EYES[mi][0] + gx * eyeScale - 30, EYES[mi][1] + gy * eyeScale - 30, 60, 60);
+      }
+      mctx.globalCompositeOperation = 'destination-out';
+      var mg = mctx.createRadialGradient(240, 263, 36, 240, 263, 46);
+      mg.addColorStop(0, 'rgba(0,0,0,1)'); mg.addColorStop(1, 'rgba(0,0,0,0)');
+      mctx.fillStyle = mg;
+      mctx.save(); mctx.translate(240, 263); mctx.scale(1, 0.444); mctx.translate(-240, -263);
+      mctx.fillRect(190, 213, 100, 100);
+      mctx.restore();
+      mctx.globalCompositeOperation = 'source-over';
       pctx.globalCompositeOperation = 'destination-in';
       pctx.drawImage(mask, 0, 0);
       pctx.globalCompositeOperation = 'source-over';
