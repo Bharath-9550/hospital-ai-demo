@@ -3066,7 +3066,7 @@
     var w = bot.offsetWidth, h = bot.offsetHeight;
     var head = r.top - 8;
     if (head >= h * 0.88) { if (bot.style.width) { bot.style.width = ''; w = bot.offsetWidth; h = bot.offsetHeight; } }
-    else { var nw = Math.max(60, Math.floor(head / 0.88)); if (nw !== w) { bot.style.width = nw + 'px'; w = bot.offsetWidth; h = bot.offsetHeight; } }
+    else { var nw = Math.max(88, Math.floor(head / 0.88)); if (nw !== w) { bot.style.width = nw + 'px'; w = bot.offsetWidth; h = bot.offsetHeight; } }
     var left = r.left + r.width / 2 - w / 2;
     var top = r.top - h * 0.88;
     if (top < 6) top = 6;
@@ -3114,6 +3114,16 @@
     var patch = document.createElement('canvas'); patch.width = 480; patch.height = 480;
     var pctx = patch.getContext('2d');
     var blinkStart = 0, nextBlink = 2400 + Math.random() * 2000, blinkAgain = false;
+    var mask = document.createElement('canvas'); mask.width = 480; mask.height = 480;
+    (function () {
+      var mctx = mask.getContext('2d');
+      for (var mi = 0; mi < EYES.length; mi++) {
+        var gr = mctx.createRadialGradient(EYES[mi][0], EYES[mi][1], 38, EYES[mi][0], EYES[mi][1], 50);
+        gr.addColorStop(0, 'rgba(0,0,0,1)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+        mctx.fillStyle = gr;
+        mctx.fillRect(EYES[mi][0] - 56, EYES[mi][1] - 56, 112, 112);
+      }
+    })();
     function lookAt(x, y) {
       lastPtr = Date.now();
       var r = bot.getBoundingClientRect();
@@ -3122,7 +3132,7 @@
       var dist = Math.sqrt(dx * dx + dy * dy);
       if (dist < 1) return;
       var f = Math.min(1, dist / 140);
-      tx = (dx / dist) * 16 * f; ty = (dy / dist) * 9 * f; if (ty < -8) ty = -8;
+      tx = (dx / dist) * 22 * f; ty = (dy / dist) * 11 * f; if (ty < -9) ty = -9;
     }
     window.addEventListener('pointermove', function (e) { lookAt(e.clientX, e.clientY); }, { passive: true });
     window.addEventListener('pointerdown', function (e) { lookAt(e.clientX, e.clientY); }, { passive: true });
@@ -3130,11 +3140,11 @@
       requestAnimationFrame(gazeLoop);
       if (!baseReady || face !== 'normal' || !gate || gate.hidden) { bot.classList.remove('pa-gaze'); return; }
       var now = Date.now();
-      if (now - lastPtr > 3500 && now > nextWander) {
+      if (now - lastPtr > 9000 && now > nextWander) {
         var roll = Math.random();
-        if (roll < 0.3) { tx = (Math.random() < 0.5 ? -14 : 14); ty = (Math.random() * 2 - 1) * 4; }
+        if (roll < 0.3) { tx = (Math.random() < 0.5 ? -20 : 20); ty = (Math.random() * 2 - 1) * 5; }
         else if (roll < 0.45) { tx = 0; ty = 0; }
-        else { tx = (Math.random() * 2 - 1) * 13; ty = (Math.random() * 2 - 1) * 6 - 1; }
+        else { tx = (Math.random() * 2 - 1) * 17; ty = (Math.random() * 2 - 1) * 8 - 1; }
         if (Math.random() < 0.22) { eyeScaleTarget = Math.random() < 0.5 ? 1.10 : 0.90; setTimeout(function () { eyeScaleTarget = 1; }, 1500); }
         nextWander = now + (busy ? 700 : 2800 + Math.random() * 1700);
       }
@@ -3161,12 +3171,7 @@
         pctx.restore();
       }
       pctx.globalCompositeOperation = 'destination-in';
-      for (var j = 0; j < EYES.length; j++) {
-        var gr = pctx.createRadialGradient(EYES[j][0], EYES[j][1], 38, EYES[j][0], EYES[j][1], 50);
-        gr.addColorStop(0, 'rgba(0,0,0,1)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
-        pctx.fillStyle = gr;
-        pctx.fillRect(EYES[j][0] - 56, EYES[j][1] - 56, 112, 112);
-      }
+      pctx.drawImage(mask, 0, 0);
       pctx.globalCompositeOperation = 'source-over';
       ctx.drawImage(patch, 0, 0);
       if (lid > 0) {
