@@ -22,3 +22,6 @@
 :is(#paBot,#dbBot) :is(.pa-bot-stage,.db-bot-stage){transition:transform .12s linear;}
 @keyframes mascot-breathe{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-5px) scale(1.035,1.025)}}
 @media(prefers-reduced-motion:reduce){:is(#paBot,#dbBot) :is(.pa-bot-stage,.db-bot-stage){transform:none!important;}}
+
+/* V5: visible body movement is separate from the facial/arm warp. */
+@keyframes mascot-breathe{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-5px) scale(1.025,1.015)}}

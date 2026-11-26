@@ -30,35 +30,49 @@
     img.decode().then(()=>{a.ready=true;setPose(pose);}).catch(()=>{if(name==='normal') bot.dataset.assetError='true';});
   });
   stage.querySelector('canvas')?.remove();
-  // Smooth local pixel warp; no rectangular atlas swaps.
+  // Whole-image inverse warp. Every displacement fades continuously to zero.
+  // The original image is sampled once; no copied facial patches or hard seams.
   let source, output, fc, lastPaint=0,lastTick=0;
-  const X=135,Y=180,W=210,H=125;
-  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const N=240, clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
   const smooth=v=>{v=clamp(v,0,1);return v*v*(3-2*v);};
+  const fields=new Float32Array(N*N*9);
+  const fall=(x,y,cx,cy,rx,ry,core=.25)=>1-smooth((Math.hypot((x-cx)/rx,(y-cy)/ry)-core)/(1-core));
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    const px=x*2,py=y*2,i=(y*N+x)*9;
+    const head=1-smooth((py-272)/65);
+    fields[i]=head*(py-310)/2; fields[i+1]=-head*(px-240)/2;
+    fields[i+2]=fall(px,py,184,229,39,36,.4);
+    fields[i+3]=fall(px,py,295,229,39,36,.4);
+    fields[i+4]=fall(px,py,240,269,38,25,.5);
+    fields[i+5]=fall(px,py,116,350,55,58,.35);
+    fields[i+6]=fall(px,py,363,350,55,58,.35);
+    fields[i+7]=fall(px,py,184,229,38,34,.55);
+    fields[i+8]=fall(px,py,295,229,38,34,.55);
+  }
   original.decode().then(()=>{
-    eyeOriginal=original;eyeCanvas=document.createElement('canvas');eyeCanvas.width=eyeCanvas.height=480;
-    eyeCanvas.className='mascot-pose';stage.append(eyeCanvas);fc=eyeCanvas.getContext('2d',{willReadFrequently:true});fc.drawImage(original,0,0,480,480);
-    source=fc.getImageData(X,Y,W,H);output=fc.createImageData(W,H);setPose(pose);startEyes();
+    eyeOriginal=original;eyeCanvas=document.createElement('canvas');eyeCanvas.width=eyeCanvas.height=N;
+    eyeCanvas.className='mascot-pose';stage.append(eyeCanvas);fc=eyeCanvas.getContext('2d');fc.drawImage(original,0,0,N,N);
+    source=fc.getImageData(0,0,N,N);output=fc.createImageData(N,N);setPose(pose);startEyes();
   }).catch(e=>console.warn('Mascot motion unavailable',e));
-  function drawFace(gx,gy,blink,mouth){
+  function drawFace(gx,gy,blink,mouth,head=0,left=0,right=0){
     if(!fc)return;const src=source.data,dst=output.data;
-    for(let y=0;y<H;y++)for(let x=0;x<W;x++){
-      const px=x+X,py=y+Y;let sx=x,sy=y;
-      for(const cx of [184,295]){
-        const dx=px-cx,dy=py-229;
-        const w=1-smooth((Math.sqrt((dx/45)**2+(dy/42)**2)-.57)/.43);
-        sx-=gx*9*w;sy-=gy*5*w;
-        const ay=Math.abs(dy),inner=24,outer=39,k=1-.91*blink,edge=inner*k;
-        const mapped=ay<=edge?ay/k:ay<outer?inner+(ay-edge)*(outer-inner)/(outer-edge):ay;
-        sy+=(Math.sign(dy)*mapped-dy)*(1-smooth((Math.abs(dx)-23)/20));
-      }
-      const mx=px-240,my=py-269,mw=1-smooth((Math.sqrt((mx/35)**2+(my/29)**2)-.55)/.45);
-      sy-=my*mouth*.26*mw;
-      sx=clamp(sx,0,W-1);sy=clamp(sy,0,H-1);
+    for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+      const k=y*N+x,i=k*9, px=x*2,py=y*2;
+      let sx=x+head*fields[i],sy=y+head*fields[i+1];
+      const eye=fields[i+2]+fields[i+3];sx-=gx*4.5*eye;sy-=gy*2.5*eye;
+      // Smoothly compress eyes vertically without affecting the mouth or nearby pixels.
+      const dy=y-114.5;sy+=blink*dy*2.6*(fields[i+7]+fields[i+8]);
+      sy+=(y-134.5)*mouth*.7*fields[i+4];
+      // Independent arm lifts: the deformation falls off before the body center.
+      sy+=left*fields[i+5]+right*fields[i+6];
+      sx+=left*.32*fields[i+5]-right*.32*fields[i+6];
+      sx=clamp(sx,0,N-1);sy=clamp(sy,0,N-1);
       const ix=Math.floor(sx),iy=Math.floor(sy),fx=sx-ix,fy=sy-iy;
-      const a=(iy*W+ix)*4,b=(iy*W+Math.min(ix+1,W-1))*4,c=(Math.min(iy+1,H-1)*W+ix)*4,d=(Math.min(iy+1,H-1)*W+Math.min(ix+1,W-1))*4,o=(y*W+x)*4;
-      for(let j=0;j<4;j++)dst[o+j]=(src[a+j]*(1-fx)+src[b+j]*fx)*(1-fy)+(src[c+j]*(1-fx)+src[d+j]*fx)*fy;
-    }fc.putImageData(output,X,Y);
+      const a=(iy*N+ix)*4,b=(iy*N+Math.min(ix+1,N-1))*4,c=(Math.min(iy+1,N-1)*N+ix)*4,d=(Math.min(iy+1,N-1)*N+Math.min(ix+1,N-1))*4,o=k*4;
+      const wa=(1-fx)*(1-fy),wb=fx*(1-fy),wc=(1-fx)*fy,wd=fx*fy;
+      const aa=src[a+3]*wa,ab=src[b+3]*wb,ac=src[c+3]*wc,ad=src[d+3]*wd,alpha=aa+ab+ac+ad;
+      dst[o+3]=alpha;for(let j=0;j<3;j++)dst[o+j]=alpha>0?(src[a+j]*aa+src[b+j]*ab+src[c+j]*ac+src[d+j]*ad)/alpha:0;
+    }fc.putImageData(output,0,0);
   }
   function stopEyes(){if(gazeRAF)cancelAnimationFrame(gazeRAF);gazeRAF=0;blinkStart=0;gx=gy=tx=ty=0;lastPaint=lastTick=0;drawFace(0,0,0,0);}
   function startEyes(){if(gazeRAF||!eyeCanvas||motion.matches||document.hidden||!['idle','typing','verifying'].includes(state))return;nextBlink=performance.now()+1500;lastMove=performance.now()-3000;gazeRAF=requestAnimationFrame(eyeLoop);}
@@ -69,8 +83,11 @@
     const ease=1-Math.exp(-dt/100);gx+=(tx-gx)*ease;gy+=(ty-gy)*ease;
     if(t>=nextBlink&&!blinkStart)blinkStart=t;
     let blink=0;if(blinkStart){const d=t-blinkStart;blink=d<100?smooth(d/100):d<165?1:d<290?1-smooth((d-165)/125):0;if(d>=290){blinkStart=0;nextBlink=t+2700+Math.random()*1900;}}
-    if(t-lastPaint>=30){lastPaint=t;drawFace(gx,gy,blink,.65*Math.sin(t/620));}
-    stage.style.setProperty('--mascot-lean',(gx*5+Math.sin(t/1100)*2.5)+'deg');gazeRAF=requestAnimationFrame(eyeLoop);
+    if(t-lastPaint>=33){lastPaint=t;
+      const phase=t%10000, wave=phase<2200?Math.sin(Math.PI*phase/2200)**2:0;
+      drawFace(gx,gy,blink,.55+.40*Math.sin(t/580),.075*Math.sin(t/1350)+gx*.035,3+2*Math.sin(t/920),3+2*Math.sin(t/1100)+10*wave);
+    }
+    stage.style.setProperty('--mascot-lean',(gx*4+Math.sin(t/1100)*3)+'deg');gazeRAF=requestAnimationFrame(eyeLoop);
   }
 
   function say(text) { bubble.textContent=text; bubble.classList.toggle('mascot-speech',!!text); queuePlace(); }
