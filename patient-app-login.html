@@ -2407,14 +2407,14 @@
   @keyframes paBotHeart { 0%, 100% { opacity:.55; transform:translate(-50%, -50%) scale(1); } 12% { opacity:1; transform:translate(-50%, -50%) scale(1.15); } 24% { opacity:.7; transform:translate(-50%, -50%) scale(1.03); } 36% { opacity:.95; transform:translate(-50%, -50%) scale(1.11); } 55% { opacity:.55; transform:translate(-50%, -50%) scale(1); } }
   #paBot .pa-bot-glow-ant { left:50%; top:13.5%; width:34%; height:22%; transform:translate(-50%, -50%); background:radial-gradient(closest-side, rgba(255,205,84,.8), rgba(255,205,84,0) 70%); animation:paBotAnt 2.6s ease-in-out infinite alternate; }
   @keyframes paBotAnt { from { opacity:.6; transform:translate(-50%, -50%) scale(1); } to { opacity:1; transform:translate(-50%, -50%) scale(1.2); } }
-  #paBot .pa-bot-bubble { position:absolute; left:50%; top:calc(100% + 8px); transform:translateX(-50%) scale(.85); background:#ffffff; color:#17323a; border:1px solid #dcebe6; padding:8px 13px; border-radius:14px; font-size:13.5px; font-weight:700; white-space:nowrap; box-shadow:0 10px 22px rgba(8,60,66,.18); opacity:0; transition:opacity .25s ease, transform .25s ease; z-index:6; }
-  #paBot .pa-bot-bubble::after { content:""; position:absolute; left:50%; top:-6px; margin-left:-6px; width:12px; height:12px; background:#ffffff; border-left:1px solid #dcebe6; border-top:1px solid #dcebe6; transform:rotate(45deg); }
+  #paBot .pa-bot-bubble { position:absolute; left:50%; bottom:calc(100% + 8px); transform:translateX(-50%) scale(.85); background:#ffffff; color:#17323a; border:1px solid #dcebe6; padding:8px 13px; border-radius:14px; font-size:13.5px; font-weight:700; white-space:nowrap; box-shadow:0 10px 22px rgba(8,60,66,.18); opacity:0; transition:opacity .25s ease, transform .25s ease; z-index:6; }
+  #paBot .pa-bot-bubble::after { content:""; position:absolute; left:50%; bottom:-6px; margin-left:-6px; width:12px; height:12px; background:#ffffff; border-right:1px solid #dcebe6; border-bottom:1px solid #dcebe6; transform:rotate(45deg); }
   #paBot .pa-bot-bubble.pa-show { opacity:1; transform:translateX(-50%) scale(1); }
   #paBot.pa-bot-happy #paBotImg { animation:paBotJump .55s ease 2; }
   @keyframes paBotJump { 0%, 100% { transform:translateY(0); } 40% { transform:translateY(-11px); } }
   #paBot.pa-bot-wave #paBotImg { animation:paBotWiggle .45s ease-in-out infinite alternate; }
   @keyframes paBotWiggle { from { transform:rotate(-2.6deg); } to { transform:rotate(2.6deg); } }
-  @media (max-width: 940px) { #paLogin .pa-card { max-height:calc(100dvh - 112px); } #paBot { width:84px; } }
+  @media (max-width: 940px) { #paLogin .pa-card { max-height:calc(100dvh - 168px); } #paBot { width:84px; } }
   @media (prefers-reduced-motion: reduce) { #paBot .pa-bot-stage, #paBot.pa-bot-hop .pa-bot-stage, #paBot.pa-bot-busy .pa-bot-stage, #paBot .pa-bot-glow-heart, #paBot .pa-bot-glow-ant, #paBot.pa-bot-happy #paBotImg, #paBot.pa-bot-wave #paBotImg { animation:none; } }
 </style>
 
@@ -3055,8 +3055,11 @@
     var r = card.getBoundingClientRect();
     if (!r.width) return;
     var w = bot.offsetWidth, h = bot.offsetHeight;
+    var head = r.top - 8;
+    if (head >= h * 0.88) { if (bot.style.width) { bot.style.width = ''; w = bot.offsetWidth; h = bot.offsetHeight; } }
+    else { var nw = Math.max(60, Math.floor(head / 0.88)); if (nw !== w) { bot.style.width = nw + 'px'; w = bot.offsetWidth; h = bot.offsetHeight; } }
     var left = r.left + r.width / 2 - w / 2;
-    var top = r.top - h * 0.58;
+    var top = r.top - h * 0.88;
     if (top < 6) top = 6;
     bot.style.left = left + 'px';
     bot.style.top = top + 'px';
@@ -3124,7 +3127,7 @@
     bubble.textContent = name ? ('Welcome, ' + name + '!') : 'Welcome!';
     bubble.classList.add('pa-show');
     clearTimeout(bubbleTimer);
-    bubbleTimer = setTimeout(function () { bubble.classList.remove('pa-show'); }, 8000);
+    bubbleTimer = setTimeout(function () { bubble.classList.remove('pa-show'); }, 10000);
     var waves = 0;
     setFace('wave');
     bot.classList.add('pa-bot-wave');
@@ -3132,8 +3135,8 @@
     waveTimer = setInterval(function () {
       waves++;
       setFace(waves % 2 ? 'happy' : 'wave');
-      if (waves >= 16) { clearInterval(waveTimer); bot.classList.remove('pa-bot-wave'); img.style.transform = ''; setFace('happy'); }
-    }, 430);
+      if (waves >= 10) { clearInterval(waveTimer); bot.classList.remove('pa-bot-wave'); img.style.transform = ''; setFace('happy'); }
+    }, 950);
   }
   function resetAll() {
     celebrating = false;

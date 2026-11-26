@@ -3846,8 +3846,8 @@
   @keyframes dbBotHeart { 0%, 100% { opacity:.55; transform:translate(-50%, -50%) scale(1); } 12% { opacity:1; transform:translate(-50%, -50%) scale(1.15); } 24% { opacity:.7; transform:translate(-50%, -50%) scale(1.03); } 36% { opacity:.95; transform:translate(-50%, -50%) scale(1.11); } 55% { opacity:.55; transform:translate(-50%, -50%) scale(1); } }
   #dbBot .db-bot-glow-ant { left:50%; top:13.5%; width:34%; height:22%; transform:translate(-50%, -50%); background:radial-gradient(closest-side, rgba(255,205,84,.8), rgba(255,205,84,0) 70%); animation:dbBotAnt 2.6s ease-in-out infinite alternate; }
   @keyframes dbBotAnt { from { opacity:.6; transform:translate(-50%, -50%) scale(1); } to { opacity:1; transform:translate(-50%, -50%) scale(1.2); } }
-  #dbBot .db-bot-bubble { position:absolute; left:50%; top:calc(100% + 8px); transform:translateX(-50%) scale(.85); background:#ffffff; color:#17323a; border:1px solid #dcebe6; padding:8px 13px; border-radius:14px; font-size:13.5px; font-weight:700; white-space:nowrap; box-shadow:0 10px 22px rgba(8,60,66,.18); opacity:0; transition:opacity .25s ease, transform .25s ease; z-index:6; }
-  #dbBot .db-bot-bubble::after { content:""; position:absolute; left:50%; top:-6px; margin-left:-6px; width:12px; height:12px; background:#ffffff; border-left:1px solid #dcebe6; border-top:1px solid #dcebe6; transform:rotate(45deg); }
+  #dbBot .db-bot-bubble { position:absolute; left:50%; bottom:calc(100% + 8px); transform:translateX(-50%) scale(.85); background:#ffffff; color:#17323a; border:1px solid #dcebe6; padding:8px 13px; border-radius:14px; font-size:13.5px; font-weight:700; white-space:nowrap; box-shadow:0 10px 22px rgba(8,60,66,.18); opacity:0; transition:opacity .25s ease, transform .25s ease; z-index:6; }
+  #dbBot .db-bot-bubble::after { content:""; position:absolute; left:50%; bottom:-6px; margin-left:-6px; width:12px; height:12px; background:#ffffff; border-right:1px solid #dcebe6; border-bottom:1px solid #dcebe6; transform:rotate(45deg); }
   #dbBot .db-bot-bubble.db-show { opacity:1; transform:translateX(-50%) scale(1); }
   #dbBot.db-bot-happy #dbBotImg { animation:dbBotJump .55s ease 2; }
   @keyframes dbBotJump { 0%, 100% { transform:translateY(0); } 40% { transform:translateY(-11px); } }
@@ -3884,7 +3884,12 @@
     if (!r) r = lastRect;
     var w = bot.offsetWidth, h = bot.offsetHeight;
     var left, top;
-    if (r) { left = r.left + r.width / 2 - w / 2; top = r.top - h * 0.58; }
+    if (r) {
+      var head = r.top - 8;
+      if (head >= h * 0.88) { if (bot.style.width) { bot.style.width = ''; w = bot.offsetWidth; h = bot.offsetHeight; } }
+      else { var nw = Math.max(60, Math.floor(head / 0.88)); if (nw !== w) { bot.style.width = nw + 'px'; w = bot.offsetWidth; h = bot.offsetHeight; } }
+      left = r.left + r.width / 2 - w / 2; top = r.top - h * 0.88;
+    }
     else { left = window.innerWidth / 2 - w / 2; top = Math.max(10, window.innerHeight * 0.1); }
     if (top < 6) top = 6;
     bot.style.left = left + 'px';
@@ -3939,7 +3944,7 @@
       bubble.classList.add('db-show');
       clearTimeout(bubbleTimer); clearTimeout(byeTimer);
       bubbleTimer = setTimeout(function () { bubble.classList.remove('db-show'); }, 4200);
-      byeTimer = setTimeout(function () { bot.classList.add('db-bot-bye'); }, 5000);
+      byeTimer = setTimeout(function () { bot.classList.add('db-bot-bye'); }, 9000);
       var waves = 0;
       setFace('wave');
       bot.classList.add('db-bot-wave');
@@ -3947,8 +3952,8 @@
       waveTimer = setInterval(function () {
         waves++;
         setFace(waves % 2 ? 'happy' : 'wave');
-        if (waves >= 12) { clearInterval(waveTimer); bot.classList.remove('db-bot-wave'); setFace('happy'); }
-      }, 430);
+        if (waves >= 8) { clearInterval(waveTimer); bot.classList.remove('db-bot-wave'); setFace('happy'); }
+      }, 950);
     } else if (shown(gate) && greeted) {
       greeted = false;
       clearTimeout(byeTimer); clearTimeout(bubbleTimer); clearInterval(waveTimer);
