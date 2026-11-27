@@ -1074,12 +1074,7 @@
           '<div style="margin-top:12px"><button class="btn btn-brand" type="button" data-act="tab" data-view="chat">Book through chat</button></div></div>';
       }
 
-      /* quick actions */
-      out += '<div class="quick">' +
-        '<button type="button" data-act="tab" data-view="chat"><span class="q-ic">' + svgChat() + '</span>Book a visit</button>' +
-        '<button type="button" data-act="tab" data-view="visits"><span class="q-ic">' + svgPulse() + '</span>My journey</button>' +
-        '<button type="button" data-act="tab" data-view="reports"><span class="q-ic">' + svgFile() + '</span>Reports</button>' +
-        '<button type="button" data-act="call"><span class="q-ic">' + svgPhone() + '</span>Call us</button></div>';
+      /* Quick actions row removed Nov 26, 2026 (Bharath's call): the bottom tab bar already carries Chat & book, My visits and Reports, and Call lives in the header; the duplicate row only pushed real content down on phones. */
 
       /* journey progress */
       var j = myJourney();
@@ -2387,8 +2382,43 @@
   #paLogin .pa-trust span.pa-trust-pill { flex:0 1 auto; flex-direction:row; align-items:center; gap:8px; background:#eef7f4; border:1px solid #dcebe6; border-radius:999px; padding:9px 16px; font-size:12.5px; font-weight:600; color:#47636b; }
   @media (max-width: 940px) { #paLogin { justify-content:center; } #paLogin .pa-hero { display:none; } #paLogin .pa-card { margin:0; } }
 
+  /* Mascot bot (perch edition, Nov 25, 2026): the 3D bot sits on top
+     of the login card, placed there by its script from the card's real
+     position, and glides when the card changes height between
+     screens. It sways and bobs where everyone can see it, hops now
+     and then, leans toward the pointer, carries soft glows over its
+     heart and antenna, and swaps faces with the moment: shy on the
+     password screen, concerned on an error, waving at sign-in. */
+  #paBot { position:absolute; left:12px; top:12px; width:118px; z-index:5; pointer-events:none; font-family:'Segoe UI', system-ui, sans-serif; transition:left .38s ease, top .38s ease; }
+  #paBot .pa-bot-stage { position:relative; transform-origin:50% 92%; transition:transform 1.2s ease; }
+  @keyframes paBotIdle { 0%, 100% { transform:translateY(0) rotate(-1.7deg); } 50% { transform:translateY(-7px) rotate(1.7deg); } }
+  #paBot.pa-bot-hop .pa-bot-stage { animation:none; }
+  #paBot.pa-bot-busy .pa-bot-stage { animation:none; }
+  @keyframes paBotBusy { 0%, 100% { transform:translateY(0) rotate(-2.2deg); } 50% { transform:translateY(-9px) rotate(2.2deg); } }
+  @keyframes paBotHop { 0% { transform:translateY(0) scale(1, 1); } 35% { transform:translateY(-15px) scale(.97, 1.03); } 70% { transform:translateY(0) scale(1.04, .94); } 100% { transform:translateY(0) scale(1, 1); } }
+  #paBotImg { width:100%; display:block; border-radius:26px; }
+  #paBotCanvas { position:absolute; inset:0; width:100%; height:100%; display:none; }
+  #paBot.pa-gaze #paBotCanvas { display:block; }
+  #paBot.pa-gaze #paBotImg { visibility:hidden; }
+  #paBot .pa-bot-glow { position:absolute; border-radius:50%; pointer-events:none; }
+  #paBot .pa-bot-glow-heart { left:50%; top:73%; width:52%; height:34%; transform:translate(-50%, -50%); background:radial-gradient(closest-side, rgba(255,96,96,.6), rgba(255,96,96,0) 72%); animation:paBotHeart 1.7s ease-in-out infinite; }
+  @keyframes paBotHeart { 0%, 100% { opacity:.55; transform:translate(-50%, -50%) scale(1); } 12% { opacity:1; transform:translate(-50%, -50%) scale(1.15); } 24% { opacity:.7; transform:translate(-50%, -50%) scale(1.03); } 36% { opacity:.95; transform:translate(-50%, -50%) scale(1.11); } 55% { opacity:.55; transform:translate(-50%, -50%) scale(1); } }
+  #paBot .pa-bot-glow-ant { left:50%; top:13.5%; width:34%; height:22%; transform:translate(-50%, -50%); background:radial-gradient(closest-side, rgba(255,205,84,.8), rgba(255,205,84,0) 70%); animation:paBotAnt 2.6s ease-in-out infinite alternate; }
+  @keyframes paBotAnt { from { opacity:.6; transform:translate(-50%, -50%) scale(1); } to { opacity:1; transform:translate(-50%, -50%) scale(1.2); } }
+  #paBot .pa-bot-bubble { position:absolute; left:50%; bottom:calc(100% + 8px); transform:translateX(-50%) scale(.85); background:#ffffff; color:#17323a; border:1px solid #dcebe6; padding:8px 13px; border-radius:14px; font-size:13.5px; font-weight:700; white-space:nowrap; box-shadow:0 10px 22px rgba(8,60,66,.18); opacity:0; transition:opacity .25s ease, transform .25s ease; z-index:6; }
+  #paBot .pa-bot-bubble::after { content:""; position:absolute; left:50%; bottom:-6px; margin-left:-6px; width:12px; height:12px; background:#ffffff; border-right:1px solid #dcebe6; border-bottom:1px solid #dcebe6; transform:rotate(45deg); }
+  #paBot .pa-bot-bubble.pa-show { opacity:1; transform:translateX(-50%) scale(1); }
+  #paBot.pa-bubble-side .pa-bot-bubble { bottom:auto; top:14%; left:auto; right:calc(100% + 10px); transform:scale(.85); }
+  #paBot.pa-bubble-side .pa-bot-bubble.pa-show { transform:scale(1); }
+  #paBot.pa-bubble-side .pa-bot-bubble::after { left:auto; right:-6px; bottom:auto; top:50%; margin:-6px 0 0 0; border:none; border-top:1px solid #dcebe6; border-right:1px solid #dcebe6; }
+  #paBot.pa-bot-happy #paBotImg { animation:none; }
+  @keyframes paBotJump { 0%, 100% { transform:translateY(0); } 40% { transform:translateY(-11px); } }
+  #paBot.pa-bot-wave #paBotImg { animation:none; }
+  @keyframes paBotWiggle { from { transform:rotate(-2.6deg); } to { transform:rotate(2.6deg); } }
+  @media (max-width: 940px) { #paLogin .pa-card { max-height:calc(100dvh - 168px); } #paBot { width:84px; } }
+  @media (max-height: 860px) { #paLogin .pa-card { max-height:calc(100dvh - 200px); } }
+  @media (prefers-reduced-motion: reduce) { #paBot .pa-bot-stage, #paBot.pa-bot-hop .pa-bot-stage, #paBot.pa-bot-busy .pa-bot-stage, #paBot .pa-bot-glow-heart, #paBot .pa-bot-glow-ant, #paBot.pa-bot-happy #paBotImg, #paBot.pa-bot-wave #paBotImg { animation:none; } }
 </style>
-<link rel="stylesheet" href="mascot.css?v=3d2">
 
 <div id="paLogin" hidden>
   <div class="pa-hero" aria-hidden="true">
@@ -2549,6 +2579,7 @@
 
 <div id="paProfile" hidden>
   <div class="pa-card">
+    <button type="button" id="ppCloseTop" aria-label="Close profile">&times;</button>
     <h1>My profile</h1>
     <p class="pa-sub">See and change your details anytime.
       <span style="display:block;margin-top:2px;font-size:13.5px;opacity:.85;">మీ వివరాలు చూడండి, మార్చండి</span></p>
@@ -3001,7 +3032,517 @@
 })();
 </script>
 
-<script src="mascot-controller.js?v=3d2"></script>
+<script>
+/* Mascot bot behaviour (perch edition, Nov 25, 2026): observes only.
+   The script measures the login card and parks the bot on its top
+   edge, re-parking whenever the card changes height. Faces: normal,
+   shy (the password screen), concerned (an error shows), happy and
+   waving (sign-in complete, with the welcome bubble). It never calls
+   the auth APIs or changes sign-in state. */
+(function () {
+  var bot = document.getElementById('paBot');
+  if (!bot) return;
+  var img = document.getElementById('paBotImg');
+  var bubble = document.getElementById('paBotBubble');
+  var gate = document.getElementById('paLogin');
+  var card = document.querySelector('#paLogin .pa-card');
+  var SRC = { normal: 'bot-normal.webp', shy: 'bot-shy.webp', happy: 'bot-happy.webp', wave: 'bot-wave.webp', concerned: 'bot-concerned.webp' };
+  Object.keys(SRC).forEach(function (k) { var i = new Image(); i.src = SRC[k]; });
+  var reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var base = 'normal', face = 'normal', celebrating = false;
+  var eyeScaleTarget = 1, eyeScale = 1;
+  var stage = bot.querySelector('.pa-bot-stage');
+  var flashTimer = null, waveTimer = null, bubbleTimer = null, typeSafety = null;
+  var busy = false, busySince = 0, holdUntil = 0;
+
+  function place() {
+    if (!card || (gate && gate.hidden)) return;
+    var r = card.getBoundingClientRect();
+    if (!r.width) return;
+    var w = bot.offsetWidth, h = bot.offsetHeight;
+    var head = r.top - 8;
+    if (head >= h * 0.88) { if (bot.style.width) { bot.style.width = ''; w = bot.offsetWidth; h = bot.offsetHeight; } }
+    else { var nw = Math.max(88, Math.floor(head / 0.88)); if (nw !== w) { bot.style.width = nw + 'px'; w = bot.offsetWidth; h = bot.offsetHeight; } }
+    var left = r.left + r.width / 2 - w / 2;
+    var top = r.top - h * 0.88;
+    if (top < 6) top = 6;
+    bot.style.left = left + 'px';
+    bot.style.top = top + 'px';
+  }
+  function placeSoon() { setTimeout(place, 60); setTimeout(place, 320); }
+  window.addEventListener('resize', place);
+  window.addEventListener('load', placeSoon);
+  placeSoon();
+
+
+  function setFace(f) { stopBusy(); if (face === f) return; face = f; img.src = SRC[f]; if (f !== 'normal') bot.classList.remove('pa-gaze'); }
+  function applyBase() { if (!celebrating && Date.now() >= holdUntil) setFace(base); }
+  function startBusy() {
+    if (busy || celebrating || reduced) return;
+    busy = true; busySince = Date.now();
+    bot.classList.add('pa-bot-busy');
+    clearTimeout(typeSafety);
+    typeSafety = setTimeout(stopBusy, 7000);
+  }
+  function stopBusy() {
+    if (!busy) return;
+    var wait = 1200 - (Date.now() - busySince);
+    if (wait > 0) { clearTimeout(typeSafety); typeSafety = setTimeout(stopBusy, wait); return; }
+    busy = false; clearTimeout(typeSafety);
+    bot.classList.remove('pa-bot-busy');
+    img.src = SRC[face];
+  }
+
+  /* Eyes follow (restored Nov 26, 2026): the original face with
+     the motion set that passed the live check. The whole eye
+     area is redrawn from the same picture and moves a modest
+     distance: pupils follow the pointer, wander on their own,
+     dart while the page works, and blink. Nothing is cut into
+     separate pieces and no mask touches the mouth. */
+  var cv = document.getElementById('paBotCanvas');
+  if (cv && cv.getContext && !reduced) {
+    var ctx = cv.getContext('2d');
+    var off = document.createElement('canvas'); off.width = 480; off.height = 480;
+    var baseReady = false;
+    var bimg = new Image();
+    bimg.onload = function () { off.getContext('2d').drawImage(bimg, 0, 0, 480, 480); baseReady = true; };
+    bimg.src = SRC.normal;
+    var EYES = [[187, 230], [291, 232]], ER = 44;
+    var gx = 0, gy = 0, tx = 0, ty = 0, lastPtr = 0, nextWander = 0;
+    var patch = document.createElement('canvas'); patch.width = 480; patch.height = 480;
+    var pctx = patch.getContext('2d');
+    var blinkStart = 0, nextBlink = 2400 + Math.random() * 2000, blinkAgain = false;
+    function lookAt(x, y) {
+      lastPtr = Date.now();
+      var r = bot.getBoundingClientRect();
+      if (!r.width) return;
+      var dx = x - (r.left + r.width / 2), dy = y - (r.top + r.height * 0.48);
+      var dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 1) return;
+      var f = Math.min(1, dist / 140);
+      tx = (dx / dist) * 17 * f; ty = (dy / dist) * 12 * f; if (ty < -9) ty = -9; if (ty > 9) ty = 9;
+    }
+    window.addEventListener('pointermove', function (e) { lookAt(e.clientX, e.clientY); }, { passive: true });
+    window.addEventListener('pointerdown', function (e) { lookAt(e.clientX, e.clientY); }, { passive: true });
+    (function gazeLoop() {
+      requestAnimationFrame(gazeLoop);
+      if (!baseReady || face !== 'normal' || !gate || gate.hidden) { bot.classList.remove('pa-gaze'); return; }
+      var now = Date.now();
+      if (now - lastPtr > 9000 && now > nextWander) {
+        var roll = Math.random();
+        if (roll < 0.3) { tx = (Math.random() < 0.5 ? -13 : 13); ty = (Math.random() * 2 - 1) * 4; }
+        else if (roll < 0.45) { tx = 0; ty = 0; }
+        else { tx = (Math.random() * 2 - 1) * 12; ty = (Math.random() * 2 - 1) * 7 - 1; }
+        if (Math.random() < 0.22) { eyeScaleTarget = Math.random() < 0.5 ? 1.10 : 0.90; setTimeout(function () { eyeScaleTarget = 1; }, 1500); }
+        nextWander = now + (busy ? 700 : 2800 + Math.random() * 1700);
+      }
+      gx += (tx - gx) * 0.12; gy += (ty - gy) * 0.12;
+      eyeScale += (eyeScaleTarget - eyeScale) * 0.08;
+      var lid = 0;
+      if (!busy && now > nextBlink) { blinkStart = now; nextBlink = now + 2800 + Math.random() * 2600; blinkAgain = Math.random() < 0.15; }
+      if (blinkStart) {
+        var be = now - blinkStart;
+        if (be < 90) lid = be / 90;
+        else if (be < 130) lid = 1;
+        else if (be < 240) lid = 1 - (be - 130) / 110;
+        else { blinkStart = 0; if (blinkAgain) { blinkAgain = false; nextBlink = now + 300; } }
+      }
+      bot.classList.add('pa-gaze');
+      ctx.clearRect(0, 0, 480, 480);
+      ctx.drawImage(off, 0, 0);
+      for (var i = 0; i < EYES.length; i++) {
+        pctx.clearRect(0, 0, 480, 480);
+        pctx.save();
+        pctx.beginPath(); pctx.arc(EYES[i][0], EYES[i][1], ER, 0, 7); pctx.clip();
+        pctx.translate(EYES[i][0], EYES[i][1]); pctx.scale(eyeScale, eyeScale); pctx.translate(-EYES[i][0], -EYES[i][1]);
+        pctx.drawImage(off, gx, gy);
+        pctx.restore();
+        pctx.globalCompositeOperation = 'destination-in';
+        var fgx = EYES[i][0] + gx, fgy = EYES[i][1] + gy;
+        var fg = pctx.createRadialGradient(fgx, fgy, 25, fgx, fgy, ER);
+        fg.addColorStop(0, 'rgba(0,0,0,1)');
+        fg.addColorStop(1, 'rgba(0,0,0,0)');
+        pctx.fillStyle = fg;
+        pctx.fillRect(fgx - ER - 2, fgy - ER - 2, (ER + 2) * 2, (ER + 2) * 2);
+        pctx.globalCompositeOperation = 'source-over';
+        ctx.drawImage(patch, 0, 0);
+      }
+      if (lid > 0) {
+        for (var k = 0; k < EYES.length; k++) {
+          var cx = EYES[k][0], cy = EYES[k][1];
+          ctx.save();
+          ctx.beginPath(); ctx.arc(cx, cy, ER, 0, 7); ctx.clip();
+          var rg = ctx.createRadialGradient(cx, cy, ER - 11, cx, cy, ER);
+          rg.addColorStop(0, 'rgba(87,172,164,1)');
+          rg.addColorStop(1, 'rgba(87,172,164,0)');
+          ctx.fillStyle = rg;
+          ctx.fillRect(cx - ER, cy - ER, ER * 2, ER * 2 * lid);
+          ctx.restore();
+          if (lid > 0.55) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(cx, cy + 4, 24, Math.PI * 1.08, Math.PI * 1.92);
+            ctx.strokeStyle = '#274b63'; ctx.lineWidth = 5; ctx.lineCap = 'round';
+            ctx.stroke();
+            ctx.restore();
+          }
+        }
+      }
+    })();
+  }
+
+  function flashConcerned() {
+    if (celebrating) return;
+    holdUntil = Date.now() + 4000;
+    setFace('concerned');
+    clearTimeout(flashTimer);
+    flashTimer = setTimeout(applyBase, 4000);
+  }
+  ['paPhoneErr', 'paPassErr', 'paOtpErr', 'paNameErr', 'paSetPassErr'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) new MutationObserver(function () { if ((el.textContent || '').trim()) flashConcerned(); }).observe(el, { childList: true, characterData: true, subtree: true });
+  });
+
+  function celebrate() {
+    if (celebrating) return;
+    celebrating = true;
+    holdUntil = 0;
+    bot.classList.add('pa-bot-happy');
+    var name = '';
+    var dt = document.getElementById('paDoneText');
+    if (dt) { var mm = /Welcome,\s*(.+?)\./.exec(dt.textContent || ''); if (mm) name = mm[1]; }
+    bubblePlace();
+    bubble.textContent = name ? ('Welcome, ' + name + '!') : 'Welcome!';
+    bubble.classList.add('pa-show');
+    clearTimeout(bubbleTimer);
+    bubbleTimer = setTimeout(function () { bubble.classList.remove('pa-show'); }, 10000);
+    var waves = 0;
+    setFace('wave');
+    bot.classList.add('pa-bot-wave');
+    clearInterval(waveTimer);
+    waveTimer = setInterval(function () {
+      waves++;
+      setFace(waves % 2 ? 'happy' : 'wave');
+      if (waves >= 10) { clearInterval(waveTimer); bot.classList.remove('pa-bot-wave'); img.style.transform = ''; setFace('happy'); }
+    }, 950);
+  }
+  function resetAll() {
+    celebrating = false;
+    holdUntil = 0;
+    clearInterval(waveTimer);
+    bot.classList.remove('pa-bot-happy');
+    bot.classList.remove('pa-bot-wave');
+    bubble.classList.remove('pa-show');
+    img.style.transform = '';
+    base = 'normal';
+    applyBase();
+  }
+  function watch(screen, fn) {
+    var el = document.querySelector('[data-pa="' + screen + '"]');
+    if (el) new MutationObserver(function () { if (!el.hidden) { fn(); placeSoon(); } }).observe(el, { attributes: true, attributeFilter: ['hidden'] });
+  }
+  watch('pass', function () { base = 'shy'; applyBase(); });
+  watch('phone', resetAll);
+  watch('otp', function () { base = 'normal'; applyBase(); });
+  watch('name', function () { base = 'normal'; applyBase(); });
+  watch('profile', function () { base = 'normal'; applyBase(); });
+  watch('done', celebrate);
+  watch('verifying', startBusy);
+  var doneTextEl = document.getElementById('paDoneText');
+  if (doneTextEl) new MutationObserver(function () {
+    var doneEl = document.querySelector('[data-pa="done"]');
+    if (doneEl && !doneEl.hidden && (doneTextEl.textContent || '').trim()) celebrate();
+  }).observe(doneTextEl, { childList: true, characterData: true, subtree: true });
+  var sendBtn = document.getElementById('paSend');
+  if (sendBtn) sendBtn.addEventListener('click', function () { startBusy(); });
+  /* Gestures (Nov 26, 2026): the bot stays on its perch, but it is
+     alive: a gentle head tilt, a hello wave with a Hi bubble when
+     the page opens and now and then after, a shy peek, a happy
+     face, and moments of big eyes (driven through eyeScaleTarget).
+     Gestures never interrupt typing, verifying, an error, or the
+     welcome celebration, and they only play on the first screen. */
+  function bubblePlace() { var t = bot.getBoundingClientRect().top; bot.classList.toggle('pa-bubble-side', t < 56); }
+  var gesturing = false;
+  function gesture(kind) {
+    if (reduced || celebrating || busy || gesturing) return;
+    if (!gate || gate.hidden) return;
+    if (base !== 'normal' || face !== 'normal') return;
+    var phoneEl = document.querySelector('[data-pa="phone"]');
+    if (phoneEl && phoneEl.hidden) return;
+    gesturing = true;
+    if (kind === 'hello') {
+      setFace('wave');
+      bubblePlace();
+      bubble.textContent = 'Hi!';
+      bubble.classList.add('pa-show');
+      setTimeout(function () {
+        if (!celebrating) bubble.classList.remove('pa-show');
+        applyBase(); gesturing = false;
+      }, 2200);
+    } else if (kind === 'shy') {
+      setFace('shy');
+      setTimeout(function () { applyBase(); gesturing = false; }, 2000);
+    } else if (kind === 'happy') {
+      setFace('happy');
+      setTimeout(function () { applyBase(); gesturing = false; }, 1600);
+    } else {
+      eyeScaleTarget = 1.16;
+      setTimeout(function () { eyeScaleTarget = 1; gesturing = false; }, 1400);
+    }
+  }
+  if (!reduced) {
+    if (stage) {
+      var tilts = [-3, 0, 2.5, 0], ti = 0;
+      setInterval(function () {
+        if (!gate || gate.hidden) return;
+        ti = (ti + 1) % tilts.length;
+        stage.style.transform = 'rotate(' + tilts[ti] + 'deg)';
+      }, 4200);
+    }
+    setTimeout(function () { gesture('hello'); }, 900);
+    (function nextGesture() {
+      setTimeout(function () {
+        gesture(['hello', 'shy', 'happy', 'bigeyes'][Math.floor(Math.random() * 4)]);
+        nextGesture();
+      }, 15000 + Math.random() * 13000);
+    })();
+  }
+  place();
+})();
+</script>
+
+<style>
+  /* Slot chips and visit tracker (Nov 26, 2026): wrapper-only grafts.
+     Chips turn the agent's offered times in chat into tap targets.
+     The tracker mirrors the signed-in patient's own journey step
+     at the top of the chat, using the same step labels as the app.
+     Class names pa-slot / pa-slots are used because pa-chip already
+     belongs to the gate's gender selector. */
+  .pa-slots { display:flex; flex-wrap:wrap; gap:8px; padding:8px 12px 12px; }
+  .pa-slot { border:1.5px solid #0b5563; color:#0b5563; background:#fff; border-radius:999px; padding:8px 15px; font-size:14.5px; font-weight:600; cursor:pointer; font-family:inherit; }
+  .pa-slot:active { background:#0b5563; color:#fff; }
+  #paTrack { margin:10px 12px 2px; background:#fff; border:1px solid #d8e2e8; border-radius:14px; padding:12px 14px 13px; box-shadow:0 1px 3px rgba(16,42,56,.06); font-family:'Segoe UI', system-ui, sans-serif; }
+  #paTrack[hidden] { display:none; }
+  #paTrack .pa-track-head { display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
+  #paTrack .pa-track-head b { font-size:14.5px; color:#102a38; }
+  #paTrack .pa-track-head span { font-size:12.5px; color:#5d7684; text-align:right; }
+  #paTrack .pa-steps { display:flex; margin-top:11px; }
+  #paTrack .pa-step { flex:1; text-align:center; position:relative; }
+  #paTrack .pa-step i { display:block; width:15px; height:15px; margin:0 auto; border-radius:50%; background:#d8e2e8; border:2px solid #d8e2e8; position:relative; z-index:1; }
+  #paTrack .pa-step::before { content:""; position:absolute; top:8px; left:-50%; width:100%; height:2.5px; background:#d8e2e8; }
+  #paTrack .pa-step:first-child::before { display:none; }
+  #paTrack .pa-step.done i { background:#0e7c86; border-color:#0e7c86; }
+  #paTrack .pa-step.done::before { background:#0e7c86; }
+  #paTrack .pa-step.now i { background:#fff; border-color:#0b5563; box-shadow:0 0 0 3px #dceef0; }
+  #paTrack .pa-step.now::before { background:#0e7c86; }
+  #paTrack .pa-step label { display:block; font-size:10.5px; color:#7d95a3; margin-top:5px; line-height:1.15; }
+  #paTrack .pa-step.done label { color:#0b5563; }
+  #paTrack .pa-step.now label { color:#102a38; font-weight:700; }
+  /* Profile access (Nov 26, 2026): the panel gets a sticky close X, the
+     bottom tab bar gains a fifth Profile tab, and the floating pill is
+     retired (it overlapped content on phones and duplicated the tab). */
+  #ppCloseTop { position:sticky; top:4px; z-index:6; display:flex; align-items:center; justify-content:center; width:34px; height:34px; margin:0 0 -38px auto; border-radius:50%; border:1px solid #dcebe6; background:#f4faf8; color:#0d2f38; font-size:19px; line-height:1; cursor:pointer; font-family:inherit; }
+  nav.tabbar { grid-template-columns:repeat(5,1fr); }
+  #paLogout { display:none !important; }
+  /* Login build only: the round 1 "View as patient" switcher is hidden, and
+     the graft binds the app view to the signed-in patient instead. */
+  #meSel { display:none !important; }
+</style>
+<script>
+(function () {
+  var API = 'https://backend-rbvn.onrender.com';
+  var DEMO = API + '/api/public/demo';
+  function sess() {
+    try {
+      var t = localStorage.getItem('pa_token');
+      var p = JSON.parse(localStorage.getItem('pa_patient') || 'null');
+      return (t && p && p.phone) ? p : null;
+    } catch (e) { return null; }
+  }
+  function digits(x) { return String(x || '').replace(/\D/g, '').slice(-10); }
+  function esc(x) { return String(x == null ? '' : x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+  /* ---------------- slot chips ---------------- */
+  var msgs = document.getElementById('chatMsgs');
+  function offerTimes(el) {
+    var t = el.textContent || '';
+    var found = t.match(/\b\d{1,2}:\d{2}\s*[AP]M\b/gi) || [];
+    var seen = {}, out = [];
+    for (var i = 0; i < found.length; i++) {
+      var k = found[i].toUpperCase().replace(/\s+/g, ' ');
+      if (!seen[k]) { seen[k] = 1; out.push(k); }
+    }
+    if (out.length < 2) return null;
+    if (out.length < 3 && !/available|free|open|choose|pick|select|option|works for you|book/i.test(t)) return null;
+    return out;
+  }
+  function scanChips() {
+    if (!msgs) return;
+    var list = msgs.querySelectorAll(':scope > .msg');
+    var lastAgent = null, i;
+    for (i = 0; i < list.length; i++) {
+      if (list[i].classList.contains('me')) lastAgent = null;
+      else if (list[i].classList.contains('agent')) lastAgent = list[i];
+    }
+    var times = lastAgent ? offerTimes(lastAgent) : null;
+    var old = msgs.querySelector(':scope > .pa-slots');
+    if (!times) { if (old) old.remove(); return; }
+    var sig = times.join(',');
+    if (old && old.getAttribute('data-sig') === sig) return;
+    if (old) old.remove();
+    var row = document.createElement('div');
+    row.className = 'pa-slots';
+    row.setAttribute('data-sig', sig);
+    times.forEach(function (tm) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'pa-slot'; b.textContent = tm;
+      b.addEventListener('click', function () {
+        var inp = document.getElementById('chatInput');
+        var form = document.getElementById('composer');
+        var sb = document.getElementById('sendBtn');
+        if (!inp || !form) return;
+        inp.value = tm;
+        if (form.requestSubmit) form.requestSubmit();
+        else if (sb) sb.click();
+      });
+      row.appendChild(b);
+    });
+    msgs.appendChild(row);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  /* ---------------- visit tracker ---------------- */
+  var STEP_LABEL = { BOOKED: 'Appointment booked', REMINDER_SENT: 'Reminder sent', REMINDER_CONFIRMED: 'Visit confirmed', CHECKED_IN: 'Checked in', IN_CONSULTATION: 'With the doctor', VISIT_DONE: 'Visit complete', REPORT_READY: 'Report ready', REPORT_DELIVERED: 'Report delivered' };
+  var STEP_IDX = { BOOKED: 0, REMINDER_SENT: 0, REMINDER_CONFIRMED: 1, CHECKED_IN: 2, IN_CONSULTATION: 3, VISIT_DONE: 4, REPORT_READY: 4, REPORT_DELIVERED: 4, FEEDBACK_DONE: 4, CLOSED: 4 };
+  var STEP_NAMES = ['Booked', 'Confirmed', 'Checked in', 'With doctor', 'Done'];
+  var track = null, lastTrackFetch = 0;
+  function hospitalId() {
+    var sel = document.querySelector('#hospSel');
+    if (sel && sel.value) return sel.value;
+    var g = document.getElementById('paHospital');
+    if (g && g.value) return g.value;
+    return 1;
+  }
+  function ensureTrack() {
+    if (track) return track;
+    var anchor = document.getElementById('chatMsgs');
+    if (!anchor || !anchor.parentNode) return null;
+    track = document.createElement('div');
+    track.id = 'paTrack';
+    track.hidden = true;
+    anchor.parentNode.insertBefore(track, anchor);
+    return track;
+  }
+  function todayStr() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  function clockOf(startsAt) {
+    var m = String(startsAt || '').slice(10).match(/(\d{1,2}):(\d{2})/);
+    if (!m) return '';
+    var h = parseInt(m[1], 10), ap = h >= 12 ? 'PM' : 'AM'; h = h % 12; if (h === 0) h = 12;
+    return h + ':' + m[2] + ' ' + ap;
+  }
+  function refreshTrack(force) {
+    var p = sess();
+    var el = ensureTrack();
+    if (!p || !el) return;
+    var now = Date.now();
+    if (!force && now - lastTrackFetch < 20000) return;
+    lastTrackFetch = now;
+    var hid = hospitalId();
+    Promise.all([
+      fetch(DEMO + '/hospitals/' + hid + '/journeys').then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; }),
+      fetch(DEMO + '/hospitals/' + hid + '/appointments').then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; })
+    ]).then(function (res) {
+      var mine10 = digits(p.phone);
+      var js = (res[0] || []).filter(function (j) { return j.patient && digits(j.patient.phone) === mine10 && j.step && j.step !== 'ENQUIRY'; });
+      js.sort(function (a, b) { return String(b.updatedAt) < String(a.updatedAt) ? -1 : 1; });
+      var j = js[0];
+      if (!j) { el.hidden = true; return; }
+      var appt = j.appointment || null;
+      if (!appt) {
+        var list = (res[1] || []).filter(function (a) { return a.patient && digits(a.patient.phone) === mine10; });
+        list.sort(function (a, b) { return String(a.startsAt) < String(b.startsAt) ? -1 : 1; });
+        for (var i = 0; i < list.length; i++) { if (String(list[i].startsAt).slice(0, 10) === todayStr()) { appt = list[i]; break; } }
+        if (!appt && list.length) appt = list[list.length - 1];
+      }
+      var isToday = appt && String(appt.startsAt).slice(0, 10) === todayStr();
+      var inProgress = (j.step === 'CHECKED_IN' || j.step === 'IN_CONSULTATION');
+      if (!isToday && !inProgress) { el.hidden = true; return; }
+      var idx = STEP_IDX[j.step];
+      if (idx == null) { el.hidden = true; return; }
+      var complete = idx === 4;
+      var detail = STEP_LABEL[j.step] || j.step;
+      if (appt) {
+        var bits = [];
+        if (appt.doctor && appt.doctor.name) bits.push(appt.doctor.name);
+        var ck = clockOf(appt.startsAt); if (ck) bits.push(ck);
+        if (appt.tokenNumber) bits.push('Token ' + appt.tokenNumber);
+        if (bits.length) detail += ' · ' + bits.join(' · ');
+        if (appt.vitals) {
+          var vt = [];
+          if (appt.vitals.bpSystolic != null && appt.vitals.bpDiastolic != null) vt.push('BP ' + appt.vitals.bpSystolic + '/' + appt.vitals.bpDiastolic);
+          if (appt.vitals.pulseBpm != null) vt.push('Pulse ' + appt.vitals.pulseBpm);
+          if (appt.vitals.spo2Percent != null) vt.push('SpO2 ' + appt.vitals.spo2Percent + '%');
+          if (vt.length) detail += ' · ' + vt.join(' · ');
+        }
+      }
+      var stepsHtml = '';
+      for (var k = 0; k < STEP_NAMES.length; k++) {
+        var cls = (complete || k < idx) ? 'done' : (k === idx ? 'now' : '');
+        stepsHtml += '<div class="pa-step ' + cls + '"><i></i><label>' + STEP_NAMES[k] + '</label></div>';
+      }
+      el.innerHTML = '<div class="pa-track-head"><b>Your visit</b><span>' + esc(detail) + '</span></div><div class="pa-steps">' + stepsHtml + '</div>';
+      el.hidden = false;
+    }).catch(function () {});
+  }
+
+  /* ---------------- identity: bind the app view to the session ---------------- */
+  function applyIdentity() {
+    var s = sess();
+    if (!s || !s.phone) return;
+    var sel = document.getElementById('meSel');
+    if (!sel || !sel.options || !sel.options.length) return;
+    var want = digits(s.phone);
+    if (!want) return;
+    if (digits(sel.value) === want) return;
+    for (var i = 0; i < sel.options.length; i++) {
+      if (digits(sel.options[i].value) === want) {
+        sel.value = sel.options[i].value;
+        sel.dispatchEvent(new Event('change'));
+        return;
+      }
+    }
+  }
+  setInterval(applyIdentity, 2500);
+
+  /* ---------------- profile: nav tab + panel close ---------------- */
+  var pillBtn = document.getElementById('paLogout');
+  var tabbar = document.querySelector('nav.tabbar');
+  if (tabbar && !document.getElementById('paNavProfile')) {
+    var nb = document.createElement('button');
+    nb.type = 'button'; nb.id = 'paNavProfile';
+    nb.setAttribute('aria-label', 'My profile');
+    nb.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>Profile';
+    nb.addEventListener('click', function () { if (pillBtn) pillBtn.click(); });
+    tabbar.appendChild(nb);
+  }
+  var xTop = document.getElementById('ppCloseTop');
+  if (xTop) xTop.addEventListener('click', function () { var c = document.getElementById('ppClose'); if (c) c.click(); });
+
+  /* ---------------- wiring ---------------- */
+  var chipTimer = null;
+  function onChatChange() {
+    if (chipTimer) clearTimeout(chipTimer);
+    chipTimer = setTimeout(function () { scanChips(); refreshTrack(false); }, 120);
+  }
+  if (msgs && window.MutationObserver) {
+    new MutationObserver(onChatChange).observe(msgs, { childList: true });
+  }
+  setTimeout(function () { scanChips(); refreshTrack(true); }, 2600);
+  setTimeout(function () { refreshTrack(true); }, 8000);
+  setInterval(function () { if (!document.hidden) refreshTrack(true); }, 45000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) refreshTrack(true); });
+})();
+</script>
 
 </body>
 </html>
