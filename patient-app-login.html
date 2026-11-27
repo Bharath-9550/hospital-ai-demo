@@ -1074,12 +1074,7 @@
           '<div style="margin-top:12px"><button class="btn btn-brand" type="button" data-act="tab" data-view="chat">Book through chat</button></div></div>';
       }
 
-      /* quick actions */
-      out += '<div class="quick">' +
-        '<button type="button" data-act="tab" data-view="chat"><span class="q-ic">' + svgChat() + '</span>Book a visit</button>' +
-        '<button type="button" data-act="tab" data-view="visits"><span class="q-ic">' + svgPulse() + '</span>My journey</button>' +
-        '<button type="button" data-act="tab" data-view="reports"><span class="q-ic">' + svgFile() + '</span>Reports</button>' +
-        '<button type="button" data-act="call"><span class="q-ic">' + svgPhone() + '</span>Call us</button></div>';
+      /* Quick actions row removed Nov 26, 2026 (Bharath's call): the bottom tab bar already carries Chat & book, My visits and Reports, and Call lives in the header; the duplicate row only pushed real content down on phones. */
 
       /* journey progress */
       var j = myJourney();
@@ -2584,6 +2579,7 @@
 
 <div id="paProfile" hidden>
   <div class="pa-card">
+    <button type="button" id="ppCloseTop" aria-label="Close profile">&times;</button>
     <h1>My profile</h1>
     <p class="pa-sub">See and change your details anytime.
       <span style="display:block;margin-top:2px;font-size:13.5px;opacity:.85;">మీ వివరాలు చూడండి, మార్చండి</span></p>
@@ -3342,6 +3338,12 @@
   #paTrack .pa-step label { display:block; font-size:10.5px; color:#7d95a3; margin-top:5px; line-height:1.15; }
   #paTrack .pa-step.done label { color:#0b5563; }
   #paTrack .pa-step.now label { color:#102a38; font-weight:700; }
+  /* Profile access (Nov 26, 2026): the panel gets a sticky close X, the
+     bottom tab bar gains a fifth Profile tab, and the floating pill is
+     retired (it overlapped content on phones and duplicated the tab). */
+  #ppCloseTop { position:sticky; top:4px; z-index:6; display:flex; align-items:center; justify-content:center; width:34px; height:34px; margin:0 0 -38px auto; border-radius:50%; border:1px solid #dcebe6; background:#f4faf8; color:#0d2f38; font-size:19px; line-height:1; cursor:pointer; font-family:inherit; }
+  nav.tabbar { grid-template-columns:repeat(5,1fr); }
+  #paLogout { display:none !important; }
 </style>
 <script>
 (function () {
@@ -3489,6 +3491,20 @@
       el.hidden = false;
     }).catch(function () {});
   }
+
+  /* ---------------- profile: nav tab + panel close ---------------- */
+  var pillBtn = document.getElementById('paLogout');
+  var tabbar = document.querySelector('nav.tabbar');
+  if (tabbar && !document.getElementById('paNavProfile')) {
+    var nb = document.createElement('button');
+    nb.type = 'button'; nb.id = 'paNavProfile';
+    nb.setAttribute('aria-label', 'My profile');
+    nb.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>Profile';
+    nb.addEventListener('click', function () { if (pillBtn) pillBtn.click(); });
+    tabbar.appendChild(nb);
+  }
+  var xTop = document.getElementById('ppCloseTop');
+  if (xTop) xTop.addEventListener('click', function () { var c = document.getElementById('ppClose'); if (c) c.click(); });
 
   /* ---------------- wiring ---------------- */
   var chipTimer = null;
