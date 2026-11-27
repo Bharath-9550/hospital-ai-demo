@@ -3402,6 +3402,289 @@
   }
 </style>
 <style>
+  /* Interior glass (Nov 26, 2026): Bharath extended the glass look inside
+     the patient app. Login build only (this layer lives in the wrapper, so
+     round 1 is untouched). The app is variable-driven: surfaces go
+     translucent over the gradient stage, cards and bubbles get the frost
+     blur, the tab bar floats with a sliding teal capsule under the active
+     tab, view changes use the slower glide. */
+  :root { --surface: rgba(255,255,255,.66); --surface-2: rgba(255,255,255,.45); --line: rgba(255,255,255,.65); --r-lg: 26px; --shadow: 0 14px 34px rgba(13,60,80,.10); }
+  body { background: linear-gradient(130deg,#dcf2ec 0%,#e6f0fb 52%,#f1eafd 100%); background-attachment: fixed; }
+  .app { background: transparent; }
+  .card, .msg.agent, .composer, header.appbar { backdrop-filter: blur(14px) saturate(150%); -webkit-backdrop-filter: blur(14px) saturate(150%); }
+  header.appbar { background: rgba(255,255,255,.5); }
+  .composer { background: rgba(255,255,255,.55); }
+  .msg.me { background: linear-gradient(135deg,#0e7c86,#0b5563); }
+  nav.tabbar { background: rgba(255,255,255,.72); padding: 6px 6px calc(6px + env(safe-area-inset-bottom,0px)); backdrop-filter: blur(20px) saturate(160%); -webkit-backdrop-filter: blur(20px) saturate(160%); margin: 0 10px 10px; border: 1px solid rgba(255,255,255,.65); border-radius: 24px; box-shadow: 0 16px 34px rgba(13,60,80,.18); overflow: hidden; }
+  nav.tabbar button { z-index: 1; }
+  nav.tabbar button.on { color: #ffffff; }
+  .pa-glider { position: absolute; top: 5px; bottom: 5px; border-radius: 18px; background: linear-gradient(135deg,#0e7c86,#0b5563); box-shadow: 0 8px 18px rgba(14,124,134,.35); transition: left .6s cubic-bezier(.22,.9,.26,1), width .6s cubic-bezier(.22,.9,.26,1); z-index: 0; }
+  @keyframes paViewIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  .view:not([hidden]) { animation: paViewIn .55s cubic-bezier(.22,.9,.26,1) both; }
+  #paTrack { background: rgba(255,255,255,.6); backdrop-filter: blur(14px) saturate(150%); -webkit-backdrop-filter: blur(14px) saturate(150%); }
+  .pa-slots .pa-slot { background: rgba(255,255,255,.75); }
+  /* Home top (Nov 26, 2026): the hub frame's header row and visit
+     progress card, living at the top of the real home view. */
+  #paHomeTop { display:flex; flex-direction:column; gap:14px; }
+  .pa-home-head { display:flex; align-items:center; gap:12px; position:relative; }
+  .pa-home-back { border:1px solid rgba(255,255,255,.7); background:rgba(255,255,255,.78); color:#0b5563; font-family:'Segoe UI',system-ui,sans-serif; font-size:13.5px; font-weight:700; padding:9px 15px; border-radius:999px; cursor:pointer; box-shadow:0 8px 20px rgba(13,60,80,.10); }
+  .pa-home-name { font-family:'Baloo 2','Segoe UI',system-ui,sans-serif; font-size:19px; font-weight:800; color:#102a38; }
+  .pa-home-menu { position:absolute; top:47px; left:0; z-index:40; min-width:235px; background:rgba(255,255,255,.94); border:1px solid rgba(255,255,255,.7); border-radius:16px; box-shadow:0 18px 40px rgba(13,60,80,.18); padding:6px; }
+  .pa-home-menu button { display:flex; width:100%; align-items:center; gap:9px; border:none; background:none; padding:10px 11px; border-radius:11px; font-family:'Segoe UI',system-ui,sans-serif; font-size:14px; font-weight:600; color:#102a38; cursor:pointer; text-align:left; }
+  .pa-home-menu button:hover { background:rgba(14,124,134,.09); }
+  .pa-home-menu .tick { margin-left:auto; color:#0e7c86; font-weight:800; }
+  .pa-home-card { background:rgba(255,255,255,.72); border:1px solid rgba(255,255,255,.65); border-radius:24px; box-shadow:0 14px 34px rgba(13,60,80,.10); padding:17px 19px 15px; backdrop-filter:blur(14px) saturate(150%); -webkit-backdrop-filter:blur(14px) saturate(150%); }
+  .pa-home-card h4 { font-size:15px; font-weight:800; color:#102a38; margin:0 0 13px; }
+  .pa-home-steps { display:flex; }
+  .pa-hstep { flex:1; text-align:center; position:relative; }
+  .pa-hstep i { display:block; width:16px; height:16px; margin:0 auto; border-radius:50%; background:#d8e2e8; border:2px solid #d8e2e8; position:relative; z-index:1; }
+  .pa-hstep::before { content:""; position:absolute; top:8px; left:-50%; width:100%; height:2.5px; background:#d8e2e8; }
+  .pa-hstep:first-child::before { display:none; }
+  .pa-hstep.done i { background:#0e7c86; border-color:#0e7c86; }
+  .pa-hstep.done::before { background:#0e7c86; }
+  .pa-hstep.now i { background:#fff; border-color:#0b5563; box-shadow:0 0 0 4px #dceef0; }
+  .pa-hstep.now::before { background:#0e7c86; }
+  .pa-hstep label { display:block; font-size:10.5px; color:#7d95a3; margin-top:6px; line-height:1.15; }
+  .pa-hstep.done label { color:#0b5563; }
+  .pa-hstep.now label { color:#102a38; font-weight:700; }
+  /* Exact frame home (Nov 26, 2026): the base home cards retire (kept in
+     the DOM, hidden) and the wrapper panel carries the frame layout:
+     header row, next appointment, visit progress, talk to book. */
+  #view-home { margin:10px 10px 14px; padding:18px 14px 20px; border-radius:28px; background:rgba(255,255,255,.34); border:1px solid rgba(255,255,255,.5); backdrop-filter:blur(16px) saturate(150%); -webkit-backdrop-filter:blur(16px) saturate(150%); }
+  #view-home > *:not(#paHomeTop) { display:none !important; }
+  .pa-next-main { display:flex; align-items:center; gap:13px; }
+  .pa-next-ava { width:47px; height:47px; flex:none; border-radius:50%; background:#dceef0; color:#0b5563; display:flex; align-items:center; justify-content:center; font-family:'Baloo 2','Segoe UI',sans-serif; font-size:16px; font-weight:800; }
+  .pa-next-who b { font-size:16.5px; color:#102a38; display:block; }
+  .pa-next-who span { font-size:13.5px; color:#5d7d85; line-height:1.45; display:block; margin-top:1px; }
+  .pa-next-empty { font-size:14px; color:#5d7d85; line-height:1.55; }
+  .pa-token { margin-left:auto; flex:none; background:#dceef0; border-radius:14px; padding:7px 13px 8px; }
+  .pa-token small { display:block; font-size:11px; font-weight:600; color:#5d7d85; }
+  .pa-token b { font-size:15px; color:#102a38; }
+  .pa-talk-card { display:flex; align-items:center; gap:13px; width:100%; text-align:left; background:rgba(255,255,255,.72); border:1px solid rgba(255,255,255,.65); border-radius:24px; box-shadow:0 14px 34px rgba(13,60,80,.10); padding:15px 19px; cursor:pointer; font-family:inherit; backdrop-filter:blur(14px) saturate(150%); -webkit-backdrop-filter:blur(14px) saturate(150%); }
+  .pa-talk-ic { width:47px; height:47px; flex:none; border-radius:50%; background:linear-gradient(135deg,#0e7c86,#0b5563); display:flex; align-items:center; justify-content:center; box-shadow:0 10px 22px rgba(14,124,134,.35); }
+  .pa-talk-ic svg { width:22px; height:22px; }
+  .pa-talk-card b { font-size:16px; color:#102a38; display:block; }
+  .pa-talk-card span { font-size:13.5px; color:#5d7d85; display:block; margin-top:1px; }
+  nav.tabbar button svg { width:23px; height:23px; }
+  .side h2 { font-family: 'Baloo 2','Segoe UI',system-ui,sans-serif; }
+  @media (prefers-reduced-motion: reduce) { .view:not([hidden]) { animation: none; } .pa-glider { transition: none; } }
+</style>
+<script>
+  /* Tab bar glider (Nov 26, 2026): positions the glass capsule under
+     whichever tab the app itself marks .on. Display only. */
+  (function () {
+    var nav = document.querySelector('nav.tabbar');
+    if (!nav) return;
+    var g = document.createElement('div');
+    g.className = 'pa-glider';
+    nav.insertBefore(g, nav.firstChild);
+    function sync() {
+      var on = nav.querySelector('button.on');
+      if (!on) { g.style.opacity = '0'; return; }
+      g.style.opacity = '1';
+      g.style.left = (on.offsetLeft + 5) + 'px';
+      g.style.width = Math.max(0, on.offsetWidth - 10) + 'px';
+    }
+    nav.addEventListener('click', function () { setTimeout(sync, 30); setTimeout(sync, 240); });
+    window.addEventListener('resize', sync);
+    setInterval(sync, 1500);
+    setTimeout(sync, 600); setTimeout(sync, 1600);
+  })();
+</script>
+<script>
+  /* Home top behaviour (Nov 26, 2026, frame edition): the home view is
+     the hub frame brought to life. Header row with a working hospital
+     switcher, the next appointment card, the visit progress card and
+     the talk to book card, fed by the public demo data and kept in
+     place across the app's re-renders. The base home cards stay in
+     the DOM (hidden by CSS) so nothing the app expects goes missing. */
+  (function () {
+    var DEMO = 'https://backend-rbvn.onrender.com/api/public/demo';
+    var STEP_IDX = { BOOKED: 0, REMINDER_SENT: 0, REMINDER_CONFIRMED: 1, CHECKED_IN: 2, IN_CONSULTATION: 3, VISIT_DONE: 4, REPORT_READY: 4, REPORT_DELIVERED: 4, FEEDBACK_DONE: 4, CLOSED: 4 };
+    var STEP_NAMES = ['Booked', 'Confirmed', 'Checked in', 'With doctor', 'Done'];
+    var trackData = null, nextData = null, lastFetch = 0, hospCache = null;
+    function sess() { try { var t = localStorage.getItem('pa_token'); var p = JSON.parse(localStorage.getItem('pa_patient') || 'null'); return (t && p && p.phone) ? p : null; } catch (e) { return null; } }
+    function digits(x) { return String(x || '').replace(/\D/g, '').slice(-10); }
+    function esc(x) { return String(x == null ? '' : x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+    function hid() { var sel = document.querySelector('#hospSel'); return (sel && sel.value) ? sel.value : 1; }
+    function todayStr() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+    function clockOf(startsAt) {
+      var m = String(startsAt || '').slice(10).match(/(\d{1,2}):(\d{2})/);
+      if (!m) return '';
+      var h = parseInt(m[1], 10), ap = h >= 12 ? 'PM' : 'AM'; h = h % 12; if (h === 0) h = 12;
+      return h + ':' + m[2] + ' ' + ap;
+    }
+    function dayLabel(startsAt) {
+      var dstr = String(startsAt || '').slice(0, 10), t = todayStr();
+      if (dstr === t) return 'Today';
+      var tm = new Date(); tm.setDate(tm.getDate() + 1);
+      var tmr = tm.getFullYear() + '-' + ('0' + (tm.getMonth() + 1)).slice(-2) + '-' + ('0' + tm.getDate()).slice(-2);
+      if (dstr === tmr) return 'Tomorrow';
+      var d = new Date(dstr + 'T12:00:00');
+      return isNaN(d) ? dstr : d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
+    }
+    function initials(name) {
+      var parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+      if (!parts.length) return '?';
+      if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+      return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+    }
+    function syncName() {
+      var sel = document.querySelector('#hospSel'); var nm = document.getElementById('paHospName');
+      if (sel && nm && sel.selectedIndex >= 0) nm.textContent = sel.options[sel.selectedIndex].textContent.trim();
+    }
+    function renderNext() {
+      var card = document.getElementById('paNextCard');
+      if (!card) return;
+      if (!nextData) {
+        card.innerHTML = '<h4>Next appointment</h4><p class="pa-next-empty">No upcoming appointment. Book one any time with the assistant below.</p>';
+        return;
+      }
+      var a = nextData, doc = a.doctor || {};
+      var meta = [];
+      if (doc.department) meta.push(esc(doc.department));
+      meta.push(dayLabel(a.startsAt) + ', ' + clockOf(a.startsAt));
+      var token = (a.tokenNumber != null && a.tokenNumber !== '') ? '<div class="pa-token"><small>Token</small><b>' + esc(a.tokenNumber) + '</b></div>' : '';
+      card.innerHTML = '<h4>Next appointment</h4><div class="pa-next-main"><div class="pa-next-ava">' + esc(initials(doc.name)) + '</div><div class="pa-next-who"><b>' + esc(doc.name || 'Doctor') + '</b><span>' + meta.join(' · ') + '</span></div>' + token + '</div>';
+    }
+    function renderTrack() {
+      var card = document.getElementById('paHomeTrack');
+      if (!card) return;
+      if (!trackData) { card.style.display = 'none'; return; }
+      card.style.display = '';
+      var idx = trackData.idx, html = '<h4>Visit progress</h4><div class="pa-home-steps">';
+      for (var i = 0; i < STEP_NAMES.length; i++) {
+        var cls = 'pa-hstep' + ((trackData.complete || i < idx) ? ' done' : (i === idx ? ' now' : ''));
+        html += '<div class="' + cls + '"><i></i><label>' + STEP_NAMES[i] + '</label></div>';
+      }
+      card.innerHTML = html + '</div>';
+    }
+    function closeMenu() { var m = document.querySelector('.pa-home-menu'); if (m) m.remove(); }
+    function openMenu(head) {
+      if (document.querySelector('.pa-home-menu')) { closeMenu(); return; }
+      function draw(list) {
+        closeMenu();
+        var m = document.createElement('div'); m.className = 'pa-home-menu';
+        list.forEach(function (h) {
+          var b = document.createElement('button'); b.type = 'button';
+          b.innerHTML = esc(h.name) + (String(h.id) === String(hid()) ? '<span class="tick">&#10003;</span>' : '');
+          b.addEventListener('click', function () {
+            var sel = document.querySelector('#hospSel');
+            if (sel) { sel.value = String(h.id); sel.dispatchEvent(new Event('change', { bubbles: true })); }
+            closeMenu(); setTimeout(syncName, 300); setTimeout(refresh, 600);
+          });
+          m.appendChild(b);
+        });
+        head.appendChild(m);
+        setTimeout(function () { document.addEventListener('click', function h(ev) { if (!m.contains(ev.target)) { closeMenu(); document.removeEventListener('click', h); } }); }, 10);
+      }
+      if (hospCache) { draw(hospCache); return; }
+      fetch(DEMO + '/hospitals').then(function (r) { return r.ok ? r.json() : []; }).then(function (list) { hospCache = list || []; draw(hospCache); }).catch(function () { draw([]); });
+    }
+    function build() {
+      var top = document.createElement('div'); top.id = 'paHomeTop';
+      var head = document.createElement('div'); head.className = 'pa-home-head';
+      var back = document.createElement('button'); back.type = 'button'; back.className = 'pa-home-back'; back.textContent = '‹ All hospitals';
+      back.addEventListener('click', function () { openMenu(head); });
+      var nm = document.createElement('span'); nm.className = 'pa-home-name'; nm.id = 'paHospName'; nm.textContent = 'Your hospital';
+      head.appendChild(back); head.appendChild(nm); top.appendChild(head);
+      var next = document.createElement('div'); next.className = 'pa-home-card'; next.id = 'paNextCard'; top.appendChild(next);
+      var card = document.createElement('div'); card.className = 'pa-home-card'; card.id = 'paHomeTrack'; card.style.display = 'none'; top.appendChild(card);
+      var talk = document.createElement('button'); talk.type = 'button'; talk.className = 'pa-talk-card'; talk.id = 'paTalkCard';
+      talk.innerHTML = '<span class="pa-talk-ic"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="9" y="2.8" width="6" height="11" rx="3" fill="#ffffff"/><path d="M5.6 11.4a6.4 6.4 0 0 0 12.8 0M12 17.8v3.1" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round"/></svg></span><span><b>Talk to book</b><span>Speak or type, in your language</span></span>';
+      talk.addEventListener('click', function () {
+        var btns = document.querySelectorAll('nav.tabbar button');
+        for (var i = 0; i < btns.length; i++) { if (/chat/i.test(btns[i].textContent)) { btns[i].click(); return; } }
+      });
+      top.appendChild(talk);
+      return top;
+    }
+    function ensure() {
+      var v = document.getElementById('view-home');
+      if (!v) return;
+      if (!document.getElementById('paHomeTop')) v.insertBefore(build(), v.firstChild);
+      syncName(); renderNext(); renderTrack();
+    }
+    function refresh() {
+      var p = sess(); if (!p) { trackData = null; nextData = null; renderTrack(); renderNext(); return; }
+      var now = Date.now(); if (now - lastFetch < 20000) return; lastFetch = now;
+      var h = hid();
+      Promise.all([
+        fetch(DEMO + '/hospitals/' + h + '/journeys').then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; }),
+        fetch(DEMO + '/hospitals/' + h + '/appointments').then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; })
+      ]).then(function (res) {
+        var mine = digits(p.phone);
+        var appts = (res[1] || []).filter(function (a) { return a.patient && digits(a.patient.phone) === mine; });
+        var upcoming = appts.filter(function (a) {
+          return String(a.startsAt).slice(0, 10) >= todayStr() && !/CANCEL|DONE|NO_SHOW|COMPLETED/i.test(String(a.status || ''));
+        });
+        upcoming.sort(function (a, b) { return String(a.startsAt) < String(b.startsAt) ? -1 : 1; });
+        nextData = upcoming[0] || null;
+        renderNext();
+        var js = (res[0] || []).filter(function (j) { return j.patient && digits(j.patient.phone) === mine && j.step && j.step !== 'ENQUIRY'; });
+        js.sort(function (a, b) { return String(b.updatedAt) < String(a.updatedAt) ? -1 : 1; });
+        var j = js[0];
+        if (!j || STEP_IDX[j.step] == null) { trackData = null; renderTrack(); return; }
+        var appt = j.appointment || null;
+        if (!appt) {
+          var list = appts.slice().sort(function (a, b) { return String(a.startsAt) < String(b.startsAt) ? -1 : 1; });
+          for (var i = 0; i < list.length; i++) { if (String(list[i].startsAt).slice(0, 10) === todayStr()) { appt = list[i]; break; } }
+          if (!appt && list.length) appt = list[list.length - 1];
+        }
+        var isToday = appt && String(appt.startsAt).slice(0, 10) === todayStr();
+        var inProg = (j.step === 'CHECKED_IN' || j.step === 'IN_CONSULTATION');
+        if (!isToday && !inProg) { trackData = null; renderTrack(); return; }
+        var idx = STEP_IDX[j.step];
+        trackData = { idx: idx, complete: idx === 4 };
+        renderTrack();
+      });
+    }
+    var v = document.getElementById('view-home');
+    if (v && window.MutationObserver) new MutationObserver(function () { ensure(); }).observe(v, { childList: true });
+    setInterval(function () { ensure(); refresh(); }, 4000);
+    setTimeout(function () { ensure(); refresh(); }, 900);
+  })();
+</script>
+<script>
+  /* Tab icons (Nov 26, 2026): the frame's bottom bar icons, drawn as
+     rounded SVGs that inherit the tab's colour (white inside the
+     active capsule, muted when idle). */
+  (function () {
+    var ICONS = {
+      home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.8 12 3.5l8 7.3"/><path d="M6.2 9.3V19.4A1.6 1.6 0 0 0 7.8 21h8.4a1.6 1.6 0 0 0 1.6-1.6V9.3"/><path d="M10 21v-5.2h4V21"/></svg>',
+      chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.8 3.8h10.4A2.8 2.8 0 0 1 20 6.6v6.6a2.8 2.8 0 0 1-2.8 2.8H12l-4.4 3.5c-.4.3-1 .1-1-.4V16A2.8 2.8 0 0 1 4 13.2V6.6A2.8 2.8 0 0 1 6.8 3.8Z"/><circle cx="8.6" cy="9.9" r="1.15" fill="currentColor" stroke="none"/><circle cx="12" cy="9.9" r="1.15" fill="currentColor" stroke="none"/><circle cx="15.4" cy="9.9" r="1.15" fill="currentColor" stroke="none"/></svg>',
+      visits: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5.8" width="16" height="14.2" rx="2.6"/><path d="M4 10.4h16M8.4 3.6v4M15.6 3.6v4"/><path d="M12 13.2v4M10 15.2h4"/></svg>',
+      reports: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 4A1.5 1.5 0 0 1 8 2.5h5.5L19 8v11.5a1.5 1.5 0 0 1-1.5 1.5h-10A1.5 1.5 0 0 1 6 19.5Z"/><path d="M13.5 2.5V8H19"/><path d="M9.2 12.6h5.6M9.2 16h5.6"/></svg>',
+      profile: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="3.7" fill="currentColor"/><path d="M4.9 19.7c.8-3.5 3.7-5.2 7.1-5.2s6.3 1.7 7.1 5.2c.1.6-.3 1-.9 1H5.8c-.6 0-1-.4-.9-1Z" fill="currentColor"/></svg>'
+    };
+    function keyFor(btn) {
+      var t = (btn.textContent || '').toLowerCase();
+      if (t.indexOf('home') > -1) return 'home';
+      if (t.indexOf('chat') > -1) return 'chat';
+      if (t.indexOf('visit') > -1) return 'visits';
+      if (t.indexOf('report') > -1) return 'reports';
+      if (t.indexOf('profile') > -1) return 'profile';
+      return null;
+    }
+    function apply() {
+      var btns = document.querySelectorAll('nav.tabbar button');
+      for (var i = 0; i < btns.length; i++) {
+        var b = btns[i], k = keyFor(b);
+        if (!k || b.getAttribute('data-pa-icon') === k) continue;
+        var old = b.querySelector('svg');
+        if (!old) continue;
+        var tmp = document.createElement('span');
+        tmp.innerHTML = ICONS[k];
+        var fresh = tmp.firstChild;
+        old.replaceWith(fresh);
+        b.setAttribute('data-pa-icon', k);
+      }
+    }
+    setInterval(apply, 2000);
+    setTimeout(apply, 700); setTimeout(apply, 1800);
+  })();
+</script>
+<style>
   /* Light glass gate (Nov 26, 2026): Bharath approved the preview board
      direction. Gradient stage with the colour blobs back, frosted card,
      filled fields, gradient primary button, Baloo 2 headlines (embedded,
