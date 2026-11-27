@@ -9,19 +9,10 @@
 :is(#paBot,#dbBot) :is(.pa-bot-glow,.db-bot-glow){display:none;}
 :is(#paBot,#dbBot) :is(.pa-bot-bubble,.db-bot-bubble){position:absolute;left:50%;bottom:100%;transform:translateX(-50%);width:max-content;max-width:170px;overflow-wrap:anywhere;white-space:normal;text-align:center;background:#fff;color:#17323a;border:1px solid #dcebe6;padding:6px 10px;border-radius:12px;font-size:12px;font-weight:600;opacity:0;transition:opacity .2s;z-index:2;box-shadow:0 4px 12px #163b3520;}
 :is(#paBot,#dbBot) .mascot-speech{opacity:1;}
-@keyframes mascot-breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.018,.99)}}
-@keyframes mascot-greet{0%,100%{transform:rotate(0)}50%{transform:rotate(-3deg)}}
-@media(prefers-reduced-motion:reduce){:is(#paBot,#dbBot),:is(#paBot,#dbBot) *{animation:none!important;transition:none!important;}}
+
+:is(#paBot,#dbBot) :is(.pa-bot-stage,.db-bot-stage){transform:none!important;overflow:visible;}
+:is(#paBot,#dbBot) :is(.pa-bot-stage,.db-bot-stage)>canvas,:is(#paBot,#dbBot) :is(.pa-bot-stage,.db-bot-stage)>img{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:contain;opacity:1!important;visibility:visible!important;transform:none!important;animation:none!important;background:transparent!important;}
+:is(#paBot,#dbBot) canvas{display:none;}
 @media(max-width:940px){#paLogin .pa-card{max-height:calc(100dvh - 168px);}}
 @media(max-height:860px){#paLogin .pa-card{max-height:calc(100dvh - 200px);}}
-:is(#paBot,#dbBot) .mascot-pose[style*="visibility: hidden"]{animation:none!important;}
-/* More visible, calm idle movement and an opening greeting. */
-@keyframes mascot-breathe{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-3px) scale(1.025,1.015)}}
-@keyframes mascot-greet{0%,100%{transform:rotate(0)}25%{transform:translateY(-5px) rotate(-5deg)}75%{transform:translateY(-3px) rotate(4deg)}}
-
-:is(#paBot,#dbBot) :is(.pa-bot-stage,.db-bot-stage){transition:transform .12s linear;}
-@keyframes mascot-breathe{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-5px) scale(1.035,1.025)}}
-@media(prefers-reduced-motion:reduce){:is(#paBot,#dbBot) :is(.pa-bot-stage,.db-bot-stage){transform:none!important;}}
-
-/* V5: visible body movement is separate from the facial/arm warp. */
-@keyframes mascot-breathe{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-5px) scale(1.025,1.015)}}
+@media(prefers-reduced-motion:reduce){:is(#paBot,#dbBot) *{animation:none!important;transition:none!important;}}

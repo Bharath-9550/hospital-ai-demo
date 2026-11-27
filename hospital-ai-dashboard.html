@@ -589,46 +589,7 @@
       .stepup-actions .btn{flex:1; justify-content:center; min-width:150px}
       @media (max-width:600px){ .stepup-card{padding:20px 18px 16px} .stepup-actions .btn{min-width:0} }
     </style>
-  
-<style>
-/* Restyle: navy and teal (Nov 26, 2026). Approved preview:
-   dashboard-restyle-preview.png. Variable swap plus targeted
-   overrides only; no markup, ids, or scripts changed, so every
-   flow, the bot included, behaves exactly as before. */
-:root {
-  --bg:#E9EFF2; --surface:#FFFFFF; --surface-2:#E3EBEF; --surface-3:#F5F8FA;
-  --ink:#102A38; --ink-2:#4C6372; --ink-3:#7D95A3;
-  --line:#D8E2E8; --line-strong:#BFCFD8;
-  --teal:#0E7C86; --teal-deep:#0B5563; --teal-ink:#0B5563; --teal-soft:#DCEEF0; --teal-ghost:#EDF5F6;
-  --amber:#B97A1A; --amber-soft:#F8ECD4;
-  --coral:#C0453A; --coral-soft:#F9E3E0;
-  --blue:#1C5D99; --blue-soft:#E3F0FB;
-  --side-bg:linear-gradient(180deg,#0A2438 0%,#0C2D47 70%,#0D334F 100%);
-  --side-ink:#CFE3EE; --side-dim:#7FA3B8; --side-active:#0E7C86;
-  --shadow:0 1px 2px rgba(16,42,56,.05),0 8px 24px -12px rgba(16,42,56,.12);
-  --shadow-lg:0 2px 4px rgba(16,42,56,.07),0 20px 44px -16px rgba(16,42,56,.22);
-}
-.btn { background:var(--teal-deep); border-color:var(--teal-deep); }
-.btn:hover { background:#0A4653; border-color:#0A4653; }
-.brand-mark { background:#0E7C86; color:#fff; }
-.nav-item:hover { background:rgba(255,255,255,.06); }
-.side-foot { border:1px solid rgba(255,255,255,.09); background:rgba(255,255,255,.05); border-radius:12px; padding:12px; margin-top:auto; }
-.kpi::before { left:0; right:0; top:0; bottom:auto; width:auto; height:3px; }
-.time-badge { background:var(--teal-ghost); border:1px solid #D7E6E9; border-radius:10px; padding:6px 9px 5px; text-align:center; }
-.time-badge .tb-date { color:var(--ink-3); }
-.avatar { background:var(--teal-soft); color:var(--teal-ink); }
-</style>
-<style>
-  /* Clinic vitals (Nov 26, 2026) */
-  .vitals-line { font-size:12.5px; color:var(--teal-ink); margin-top:3px; font-weight:600; }
-  .vitals-form { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin:2px 0 10px; }
-  .vitals-form .vf-title { font-size:13.5px; font-weight:700; color:var(--ink); margin-bottom:8px; }
-  .vitals-form .vf-grid { display:flex; flex-wrap:wrap; gap:10px; }
-  .vitals-form .vf-field { display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--ink-2); }
-  .vitals-form .vf-field input { width:104px; padding:7px 9px; border:1px solid var(--line-strong); border-radius:8px; font-size:14px; color:var(--ink); background:var(--surface); }
-  .vitals-form .vf-actions { display:flex; gap:8px; margin-top:10px; }
-</style>
-</head>
+  </head>
   <body data-mode="clinic">
     <!-- ============ STAFF SIGN-IN GATE (shown first on load) ============ -->
     <div class="auth-gate" id="authGate">
@@ -1851,39 +1812,6 @@
     function billText(a) {
       return "₹" + a.bill.amount.toLocaleString("en-IN") + (a.bill.paid ? " · Paid · " + a.bill.mode : " · Unpaid");
     }
-    let vitalsEditId = null;
-    function vitalsText(v) {
-      if (!v) return "";
-      const parts = [];
-      if (v.bpSystolic != null && v.bpDiastolic != null) parts.push("BP " + v.bpSystolic + "/" + v.bpDiastolic);
-      else if (v.bpSystolic != null) parts.push("BP " + v.bpSystolic);
-      if (v.pulseBpm != null) parts.push("Pulse " + v.pulseBpm);
-      if (v.temperatureF != null) parts.push("Temp " + v.temperatureF + "\u00B0F");
-      if (v.spo2Percent != null) parts.push("SpO2 " + v.spo2Percent + "%");
-      if (v.weightKg != null) parts.push("Wt " + v.weightKg + " kg");
-      return parts.length ? "Vitals: " + parts.join(" \u00B7 ") : "";
-    }
-    function vitalsFormHtml(a) {
-      const v = a.vitals || {};
-      const f = (key, label, ph) => '<label class="vf-field"><span>' + label + '</span><input type="number" step="any" data-vf="' + key + '" value="' + (v[key] != null ? v[key] : "") + '" placeholder="' + ph + '"></label>';
-      return '<div class="vitals-form" data-vitals-form="' + a.id + '"><div class="vf-title">Record vitals \u00B7 ' + esc(a.patient) + '</div><div class="vf-grid">' +
-        f("bpSystolic", "BP systolic", "120") + f("bpDiastolic", "BP diastolic", "80") + f("pulseBpm", "Pulse (bpm)", "72") +
-        f("temperatureF", "Temp (\u00B0F)", "98.6") + f("spo2Percent", "SpO2 (%)", "98") + f("weightKg", "Weight (kg)", "70") +
-        '</div><div class="vf-actions"><button class="btn small" data-vitals-save="' + a.id + '">Save vitals</button>' +
-        '<button class="btn small" data-vitals-cancel="1">Cancel</button></div></div>';
-    }
-    function vitalsAction(id) { vitalsEditId = vitalsEditId === id ? null : id; renderAppointments(); }
-    function vitalsSave(id) {
-      const a = state.appointments.find((x) => x.id === id);
-      const form = document.querySelector('[data-vitals-form="' + id + '"]');
-      if (!a || !form) return;
-      const values = {};
-      form.querySelectorAll("[data-vf]").forEach((inp) => { const t = inp.value.trim(); values[inp.dataset.vf] = t === "" ? null : Number(t); });
-      const done = (saved) => { a.vitals = saved; vitalsEditId = null; renderAppointments(); toast("Vitals saved", a.patient + (vitalsText(saved) ? " \u00B7 " + vitalsText(saved) : "")); };
-      const p = typeof window.__liveVitalsSave === "function" ? window.__liveVitalsSave(id, values) : null;
-      if (p && typeof p.then === "function") p.then(done).catch(() => toast("Could not save vitals", "Check the values and try again."));
-      else done(values);
-    }
     function renderAppointments() {
       const list = state.appointments.filter((a) => apptFilter === "all" || a.status === apptFilter);
       $("apptSummary").textContent = state.stats.apptTotal + " appointments today · " + state.appointments.length + " on the full list · " + (state.doctorCount || 6) + " doctors";
@@ -1893,7 +1821,6 @@
         if (!readOnly && a.queue === "not-arrived" && a.status === "upcoming") action = '<button class="btn small" data-appt-action="' + a.id + '">Check in</button>';
         else if (!readOnly && a.queue === "waiting") action = '<button class="btn small" data-appt-action="' + a.id + '">Start consult</button>';
         else if (!readOnly && a.queue === "consult") action = '<button class="btn small" data-appt-action="' + a.id + '">Complete visit</button>';
-        if (!readOnly && action) action += ' <button class="btn small" data-vitals-action="' + a.id + '">Vitals</button>';
         const fresh = a.fresh ? " fresh" : ""; delete a.fresh;
         return '<div class="row' + fresh + '">' +
           '<div class="time-badge">' + a.time + (a.dateWord ? '<span class="tb-date">' + a.dateWord + "</span>" : "") + "</div>" +
@@ -1901,16 +1828,13 @@
           '<div class="row-main"><div class="row-title">' + esc(a.patient) +
           ' <span class="pill tag">' + a.type + "</span>" + (a.priority === "Urgent" ? ' <span class="pill bad">Urgent</span>' : "") + "</div>" +
           '<div class="row-sub">' + esc(a.doctor) + " · " + esc(a.dept) + " — " + esc(a.reason) + "</div>" +
-          '<div style="font-size:12px; color:var(--ink-2); margin-top:3px">Token <strong class="mono" style="color:var(--ink)">' + a.token + "</strong> · Booked via " + a.channel + " · Reminder: " + a.reminder + "</div>" + (vitalsText(a.vitals) ? '<div class="vitals-line">' + vitalsText(a.vitals) + "</div>" : "") + "</div>" +
+          '<div style="font-size:12px; color:var(--ink-2); margin-top:3px">Token <strong class="mono" style="color:var(--ink)">' + a.token + "</strong> · Booked via " + a.channel + " · Reminder: " + a.reminder + "</div></div>" +
           '<div class="row-side">' + QUEUE_PILL[a.queue] +
           '<div class="mono" style="font-size:12.5px; margin:6px 0 2px">' + billText(a) + "</div>" +
           (action || '<div class="row-sub">' + (a.status === "completed" ? "Visit complete" : a.status === "no-show" ? "Rebooking message sent" : "") + "</div>") +
-          "</div></div>" + (vitalsEditId === a.id ? vitalsFormHtml(a) : "");
+          "</div></div>";
       }).join("") : '<div class="empty-note">No appointments in this group today.</div>';
       $("apptList").querySelectorAll("[data-appt-action]").forEach((b) => b.addEventListener("click", () => apptAction(Number(b.dataset.apptAction))));
-      $("apptList").querySelectorAll("[data-vitals-action]").forEach((b) => b.addEventListener("click", () => vitalsAction(Number(b.dataset.vitalsAction))));
-      $("apptList").querySelectorAll("[data-vitals-save]").forEach((b) => b.addEventListener("click", () => vitalsSave(Number(b.dataset.vitalsSave))));
-      $("apptList").querySelectorAll("[data-vitals-cancel]").forEach((b) => b.addEventListener("click", () => { vitalsEditId = null; renderAppointments(); }));
       renderUpcoming();
     }
     function renderUpcoming() {
@@ -2390,14 +2314,6 @@
       return DEMO_API + "/hospitals/" + LIVE.hospitalId;
     }
     function privBase() { return API_BASE + "/api/hospitals/" + (AUTH.user ? AUTH.user.hospitalId : LIVE.hospitalId); }
-    /* Clinic vitals (Nov 26, 2026): staff sessions save through the real
-       endpoint; without a staff session there is no credential the
-       endpoint would accept, so return null and the caller applies the
-       change to this view only (the same rule as appointment status). */
-    window.__liveVitalsSave = function (id, values) {
-      if (typeof isStaffMode !== "function" || !isStaffMode() || !AUTH.token) return null;
-      return authJson(privBase() + "/appointments/" + id + "/vitals", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(values) }, 60000);
-    };
     /* Authenticated fetch: adds the Bearer token, and any 401 anywhere in
        signed-in mode ends the session (handled by expireSession). */
     function authFetch(url, opts, timeoutMs) {
@@ -2505,8 +2421,7 @@
         priority: a.priority === "URGENT" ? "Urgent" : "Routine",
         reminder: rMap[a.reminderStatus] || a.reminderStatus || "",
         bill: { amount: a.amount || 0, paid: a.paymentStatus === "PAID", mode: a.paymentMode ? (a.paymentMode.charAt(0) + a.paymentMode.slice(1).toLowerCase()) : null },
-        channel: CHAN[a.source] || a.source || "",
-        vitals: a.vitals || null
+        channel: CHAN[a.source] || a.source || ""
       };
     }
     function mapPatients(patients, apptsRaw) {
@@ -3912,287 +3827,13 @@
 
 
 <style>
-  /* Mascot bot (perch edition, Nov 25, 2026): the 3D greeter sits on
-     top of the staff sign-in card, placed there by its script from
-     the card's real position. It sways and bobs in plain sight, hops
-     now and then, leans toward the pointer, carries soft glows over
-     its heart and antenna, turns concerned when a sign-in error
-     shows, and celebrates a successful sign-in from its perch
-     before stepping aside. It observes only, never touches auth. */
-  #dbBot { position:fixed; left:12px; top:12px; width:108px; z-index:1200; pointer-events:none; font-family:'Segoe UI', system-ui, sans-serif; transition:left .38s ease, top .38s ease, opacity .5s ease, visibility .5s ease; }
-  #dbBot.db-bot-bye { opacity:0; visibility:hidden; }
-  #dbBot .db-bot-stage { position:relative; transform-origin:50% 92%; transition:transform 1.2s ease; }
-  @keyframes dbBotIdle { 0%, 100% { transform:translateY(0) rotate(-1.7deg); } 50% { transform:translateY(-7px) rotate(1.7deg); } }
-  #dbBot.db-bot-hop .db-bot-stage { animation:none; }
-  @keyframes dbBotHop { 0% { transform:translateY(0) scale(1, 1); } 35% { transform:translateY(-15px) scale(.97, 1.03); } 70% { transform:translateY(0) scale(1.04, .94); } 100% { transform:translateY(0) scale(1, 1); } }
-  #dbBotImg { width:100%; display:block; border-radius:24px; }
-  #dbBotCanvas { position:absolute; inset:0; width:100%; height:100%; display:none; }
-  #dbBot.db-gaze #dbBotCanvas { display:block; }
-  #dbBot.db-gaze #dbBotImg { visibility:hidden; }
-  #dbBot .db-bot-glow { position:absolute; border-radius:50%; pointer-events:none; }
-  #dbBot .db-bot-glow-heart { left:50%; top:73%; width:52%; height:34%; transform:translate(-50%, -50%); background:radial-gradient(closest-side, rgba(255,96,96,.6), rgba(255,96,96,0) 72%); animation:dbBotHeart 1.7s ease-in-out infinite; }
-  @keyframes dbBotHeart { 0%, 100% { opacity:.55; transform:translate(-50%, -50%) scale(1); } 12% { opacity:1; transform:translate(-50%, -50%) scale(1.15); } 24% { opacity:.7; transform:translate(-50%, -50%) scale(1.03); } 36% { opacity:.95; transform:translate(-50%, -50%) scale(1.11); } 55% { opacity:.55; transform:translate(-50%, -50%) scale(1); } }
-  #dbBot .db-bot-glow-ant { left:50%; top:13.5%; width:34%; height:22%; transform:translate(-50%, -50%); background:radial-gradient(closest-side, rgba(255,205,84,.8), rgba(255,205,84,0) 70%); animation:dbBotAnt 2.6s ease-in-out infinite alternate; }
-  @keyframes dbBotAnt { from { opacity:.6; transform:translate(-50%, -50%) scale(1); } to { opacity:1; transform:translate(-50%, -50%) scale(1.2); } }
-  #dbBot .db-bot-bubble { position:absolute; left:50%; bottom:calc(100% + 8px); transform:translateX(-50%) scale(.85); background:#ffffff; color:#17323a; border:1px solid #dcebe6; padding:8px 13px; border-radius:14px; font-size:13.5px; font-weight:700; white-space:nowrap; box-shadow:0 10px 22px rgba(8,60,66,.18); opacity:0; transition:opacity .25s ease, transform .25s ease; z-index:6; }
-  #dbBot .db-bot-bubble::after { content:""; position:absolute; left:50%; bottom:-6px; margin-left:-6px; width:12px; height:12px; background:#ffffff; border-right:1px solid #dcebe6; border-bottom:1px solid #dcebe6; transform:rotate(45deg); }
-  #dbBot .db-bot-bubble.db-show { opacity:1; transform:translateX(-50%) scale(1); }
-  #dbBot.db-bot-happy #dbBotImg { animation:none; }
-  @keyframes dbBotJump { 0%, 100% { transform:translateY(0); } 40% { transform:translateY(-11px); } }
-  #dbBot.db-bot-wave #dbBotImg { animation:none; }
-  @keyframes dbBotWiggle { from { transform:rotate(-2.6deg); } to { transform:rotate(2.6deg); } }
-  @media (max-width: 700px) { #dbBot { width:84px; } }
-  @media (prefers-reduced-motion: reduce) { #dbBot .db-bot-stage, #dbBot.db-bot-hop .db-bot-stage, #dbBot .db-bot-glow-heart, #dbBot .db-bot-glow-ant, #dbBot.db-bot-happy #dbBotImg, #dbBot.db-bot-wave #dbBotImg { animation:none; } }
 </style>
+<link rel="stylesheet" href="mascot.css?v=3d2">
 <div id="dbBot" aria-hidden="true">
   <div class="db-bot-bubble" id="dbBotBubble"></div>
   <div class="db-bot-stage"><img id="dbBotImg" src="bot-normal.webp" alt=""><canvas id="dbBotCanvas" width="480" height="480"></canvas><div class="db-bot-glow db-bot-glow-ant"></div><div class="db-bot-glow db-bot-glow-heart"></div></div>
 </div>
-<script>
-/* Mascot bot behaviour (perch edition, Nov 25, 2026): the script
-   measures the sign-in card and parks the bot on its top edge. On a
-   successful sign-in the bot celebrates from that perch, then steps
-   aside; on sign-out it returns. Concerned when an error shows. */
-(function () {
-  var bot = document.getElementById('dbBot');
-  if (!bot) return;
-  var img = document.getElementById('dbBotImg');
-  var bubble = document.getElementById('dbBotBubble');
-  var card = document.querySelector('.auth-card');
-  var SRC = { normal: 'bot-normal.webp', happy: 'bot-happy.webp', wave: 'bot-wave.webp', concerned: 'bot-concerned.webp' };
-  Object.keys(SRC).forEach(function (k) { var i = new Image(); i.src = SRC[k]; });
-  var reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-  var face = 'normal', greeted = false, lastRect = null;
-  var eyeScaleTarget = 1, eyeScale = 1;
-  var stage = bot.querySelector('.db-bot-stage');
-  var flashTimer = null, waveTimer = null, bubbleTimer = null, byeTimer = null;
-
-  function gateShown() { var g = document.getElementById('authGate'); return !!g && window.getComputedStyle(g).display !== 'none'; }
-  function place() {
-    var r = null;
-    if (card && gateShown()) { var cr = card.getBoundingClientRect(); if (cr.width) { r = cr; lastRect = cr; } }
-    if (!r) r = lastRect;
-    var w = bot.offsetWidth, h = bot.offsetHeight;
-    var left, top;
-    if (r) {
-      var head = r.top - 8;
-      if (head >= h * 0.88) { if (bot.style.width) { bot.style.width = ''; w = bot.offsetWidth; h = bot.offsetHeight; } }
-      else { var nw = Math.max(88, Math.floor(head / 0.88)); if (nw !== w) { bot.style.width = nw + 'px'; w = bot.offsetWidth; h = bot.offsetHeight; } }
-      left = r.left + r.width / 2 - w / 2; top = r.top - h * 0.88;
-    }
-    else { left = window.innerWidth / 2 - w / 2; top = Math.max(10, window.innerHeight * 0.1); }
-    if (top < 6) top = 6;
-    bot.style.left = left + 'px';
-    bot.style.top = top + 'px';
-  }
-  function placeSoon() { setTimeout(place, 60); setTimeout(place, 320); }
-  window.addEventListener('resize', place);
-  window.addEventListener('load', placeSoon);
-  placeSoon();
-
-
-  function setFace(f) { if (face === f) return; face = f; img.src = SRC[f]; if (f !== 'normal') bot.classList.remove('db-gaze'); }
-  /* Eyes follow (restored Nov 26, 2026): the original face with
-     the motion set that passed the live check. The whole eye
-     area is redrawn from the same picture and moves a modest
-     distance: pupils follow the pointer, wander on their own,
-     and blink. Nothing is cut into separate pieces and no mask
-     touches the mouth. */
-  var cv = document.getElementById('dbBotCanvas');
-  if (cv && cv.getContext && !reduced) {
-    var ctx = cv.getContext('2d');
-    var off = document.createElement('canvas'); off.width = 480; off.height = 480;
-    var baseReady = false;
-    var bimg = new Image();
-    bimg.onload = function () { off.getContext('2d').drawImage(bimg, 0, 0, 480, 480); baseReady = true; };
-    bimg.src = SRC.normal;
-    var EYES = [[187, 230], [291, 232]], ER = 44;
-    var gx = 0, gy = 0, tx = 0, ty = 0, lastPtr = 0, nextWander = 0;
-    var patch = document.createElement('canvas'); patch.width = 480; patch.height = 480;
-    var pctx = patch.getContext('2d');
-    var blinkStart = 0, nextBlink = 2400 + Math.random() * 2000, blinkAgain = false;
-    function lookAt(x, y) {
-      lastPtr = Date.now();
-      var r = bot.getBoundingClientRect();
-      if (!r.width) return;
-      var dx = x - (r.left + r.width / 2), dy = y - (r.top + r.height * 0.48);
-      var dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < 1) return;
-      var f = Math.min(1, dist / 140);
-      tx = (dx / dist) * 17 * f; ty = (dy / dist) * 12 * f; if (ty < -9) ty = -9; if (ty > 9) ty = 9;
-    }
-    window.addEventListener('pointermove', function (e) { lookAt(e.clientX, e.clientY); }, { passive: true });
-    window.addEventListener('pointerdown', function (e) { lookAt(e.clientX, e.clientY); }, { passive: true });
-    (function gazeLoop() {
-      requestAnimationFrame(gazeLoop);
-      if (!baseReady || face !== 'normal' || greeted || !gateShown()) { bot.classList.remove('db-gaze'); return; }
-      var now = Date.now();
-      if (now - lastPtr > 9000 && now > nextWander) {
-        var roll = Math.random();
-        if (roll < 0.3) { tx = (Math.random() < 0.5 ? -13 : 13); ty = (Math.random() * 2 - 1) * 4; }
-        else if (roll < 0.45) { tx = 0; ty = 0; }
-        else { tx = (Math.random() * 2 - 1) * 12; ty = (Math.random() * 2 - 1) * 7 - 1; }
-        if (Math.random() < 0.22) { eyeScaleTarget = Math.random() < 0.5 ? 1.10 : 0.90; setTimeout(function () { eyeScaleTarget = 1; }, 1500); }
-        nextWander = now + 2800 + Math.random() * 1700;
-      }
-      gx += (tx - gx) * 0.12; gy += (ty - gy) * 0.12;
-      eyeScale += (eyeScaleTarget - eyeScale) * 0.08;
-      var lid = 0;
-      if (now > nextBlink) { blinkStart = now; nextBlink = now + 2800 + Math.random() * 2600; blinkAgain = Math.random() < 0.15; }
-      if (blinkStart) {
-        var be = now - blinkStart;
-        if (be < 90) lid = be / 90;
-        else if (be < 130) lid = 1;
-        else if (be < 240) lid = 1 - (be - 130) / 110;
-        else { blinkStart = 0; if (blinkAgain) { blinkAgain = false; nextBlink = now + 300; } }
-      }
-      bot.classList.add('db-gaze');
-      ctx.clearRect(0, 0, 480, 480);
-      ctx.drawImage(off, 0, 0);
-      for (var i = 0; i < EYES.length; i++) {
-        pctx.clearRect(0, 0, 480, 480);
-        pctx.save();
-        pctx.beginPath(); pctx.arc(EYES[i][0], EYES[i][1], ER, 0, 7); pctx.clip();
-        pctx.translate(EYES[i][0], EYES[i][1]); pctx.scale(eyeScale, eyeScale); pctx.translate(-EYES[i][0], -EYES[i][1]);
-        pctx.drawImage(off, gx, gy);
-        pctx.restore();
-        pctx.globalCompositeOperation = 'destination-in';
-        var fgx = EYES[i][0] + gx, fgy = EYES[i][1] + gy;
-        var fg = pctx.createRadialGradient(fgx, fgy, 25, fgx, fgy, ER);
-        fg.addColorStop(0, 'rgba(0,0,0,1)');
-        fg.addColorStop(1, 'rgba(0,0,0,0)');
-        pctx.fillStyle = fg;
-        pctx.fillRect(fgx - ER - 2, fgy - ER - 2, (ER + 2) * 2, (ER + 2) * 2);
-        pctx.globalCompositeOperation = 'source-over';
-        ctx.drawImage(patch, 0, 0);
-      }
-      if (lid > 0) {
-        for (var k = 0; k < EYES.length; k++) {
-          var cx = EYES[k][0], cy = EYES[k][1];
-          ctx.save();
-          ctx.beginPath(); ctx.arc(cx, cy, ER, 0, 7); ctx.clip();
-          var rg = ctx.createRadialGradient(cx, cy, ER - 11, cx, cy, ER);
-          rg.addColorStop(0, 'rgba(87,172,164,1)');
-          rg.addColorStop(1, 'rgba(87,172,164,0)');
-          ctx.fillStyle = rg;
-          ctx.fillRect(cx - ER, cy - ER, ER * 2, ER * 2 * lid);
-          ctx.restore();
-          if (lid > 0.55) {
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(cx, cy + 4, 24, Math.PI * 1.08, Math.PI * 1.92);
-            ctx.strokeStyle = '#274b63'; ctx.lineWidth = 5; ctx.lineCap = 'round';
-            ctx.stroke();
-            ctx.restore();
-          }
-        }
-      }
-    })();
-  }
-
-  function flashConcerned() {
-    if (greeted) return;
-    setFace('concerned');
-    clearTimeout(flashTimer);
-    flashTimer = setTimeout(function () { setFace('normal'); }, 4000);
-  }
-  ['authAlert', 'mfaAlert'].forEach(function (id) {
-    var el = document.getElementById(id);
-    if (el) new MutationObserver(function () {
-      if (el.style.display !== 'none' && (el.textContent || '').trim()) flashConcerned();
-    }).observe(el, { attributes: true, attributeFilter: ['style'], childList: true, characterData: true, subtree: true });
-  });
-
-  function shown(el) { return !!el && window.getComputedStyle(el).display !== 'none'; }
-  function check() {
-    var app = document.getElementById('appRoot');
-    var gate = document.getElementById('authGate');
-    if (shown(app) && !greeted) {
-      greeted = true;
-      place();
-      bot.classList.remove('db-bot-bye');
-      bot.classList.add('db-bot-happy');
-      img.style.transform = '';
-      bubble.textContent = 'Welcome back!';
-      bubble.classList.add('db-show');
-      clearTimeout(bubbleTimer); clearTimeout(byeTimer);
-      bubbleTimer = setTimeout(function () { bubble.classList.remove('db-show'); }, 4200);
-      byeTimer = setTimeout(function () { bot.classList.add('db-bot-bye'); }, 9000);
-      var waves = 0;
-      setFace('wave');
-      bot.classList.add('db-bot-wave');
-      clearInterval(waveTimer);
-      waveTimer = setInterval(function () {
-        waves++;
-        setFace(waves % 2 ? 'happy' : 'wave');
-        if (waves >= 8) { clearInterval(waveTimer); bot.classList.remove('db-bot-wave'); setFace('happy'); }
-      }, 950);
-    } else if (shown(gate) && greeted) {
-      greeted = false;
-      clearTimeout(byeTimer); clearTimeout(bubbleTimer); clearInterval(waveTimer);
-      bot.classList.remove('db-bot-bye');
-      bot.classList.remove('db-bot-happy');
-      bot.classList.remove('db-bot-wave');
-      bubble.classList.remove('db-show');
-      setFace('normal');
-      placeSoon();
-    } else if (shown(gate)) {
-      place();
-    }
-  }
-  ['appRoot', 'authGate'].forEach(function (id) {
-    var el = document.getElementById(id);
-    if (el) new MutationObserver(check).observe(el, { attributes: true, attributeFilter: ['style', 'class', 'hidden'] });
-  });
-  document.addEventListener('click', function () { setTimeout(check, 350); });
-  /* Gestures (Nov 26, 2026): the bot stays on its perch, but it is
-     alive: a gentle head tilt, a hello wave with a Hello bubble
-     when the page opens and now and then after, a happy face, and
-     moments of big eyes (driven through eyeScaleTarget). Gestures
-     never interrupt an error or the welcome greeting. */
-  var gesturing = false;
-  function gesture(kind) {
-    if (reduced || greeted || gesturing) return;
-    if (!gateShown() || face !== 'normal') return;
-    gesturing = true;
-    if (kind === 'hello') {
-      setFace('wave');
-      bubble.textContent = 'Hello!';
-      bubble.classList.add('db-show');
-      setTimeout(function () {
-        if (!greeted) bubble.classList.remove('db-show');
-        setFace('normal'); gesturing = false;
-      }, 2200);
-    } else if (kind === 'happy') {
-      setFace('happy');
-      setTimeout(function () { setFace('normal'); gesturing = false; }, 1600);
-    } else {
-      eyeScaleTarget = 1.16;
-      setTimeout(function () { eyeScaleTarget = 1; gesturing = false; }, 1400);
-    }
-  }
-  if (!reduced) {
-    if (stage) {
-      var tilts = [-3, 0, 2.5, 0], ti = 0;
-      setInterval(function () {
-        if (!gateShown()) return;
-        ti = (ti + 1) % tilts.length;
-        stage.style.transform = 'rotate(' + tilts[ti] + 'deg)';
-      }, 4200);
-    }
-    setTimeout(function () { gesture('hello'); }, 900);
-    setTimeout(function () { gesture('hello'); }, 2600);
-    (function nextGesture() {
-      setTimeout(function () {
-        gesture(['hello', 'happy', 'bigeyes'][Math.floor(Math.random() * 3)]);
-        nextGesture();
-      }, 16000 + Math.random() * 14000);
-    })();
-  }
-  check();
-  place();
-})();
-</script>
+<script src="mascot-controller.js?v=3d2"></script>
 
 </body>
 </html>
