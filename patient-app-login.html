@@ -2505,6 +2505,7 @@
       <div class="pa-boxes" id="paBoxes">
         <input type="tel" inputmode="numeric" maxlength="1"><input type="tel" inputmode="numeric" maxlength="1"><input type="tel" inputmode="numeric" maxlength="1"><input type="tel" inputmode="numeric" maxlength="1"><input type="tel" inputmode="numeric" maxlength="1"><input type="tel" inputmode="numeric" maxlength="1">
       </div>
+      <div class="pa-otp-badge" id="paOtpBadge"><span class="pa-otp-check"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l5 5L19.5 7"/></svg></span>Verified</div>
       <div class="pa-err" id="paOtpErr"></div>
       <button class="pa-btn" id="paVerify">Verify</button>
       <p class="pa-alt"><button class="pa-link" id="paBack">Change number</button></p>
@@ -2768,6 +2769,8 @@
         demo.hidden = false;
         demo.innerHTML = 'Demo mode: your code is <b>' + res.demoCode + '</b><br>In the live app it arrives on WhatsApp.';
       } else { demo.hidden = true; }
+      $('paBoxes').classList.remove('pa-verified', 'pa-bad', 'pa-checking');
+      $('paOtpBadge').classList.remove('show');
       boxInputs.forEach(function (b) { b.value = ''; b.classList.remove('pa-filled'); });
       showGate('otp');
       boxInputs[0].focus();
@@ -2782,6 +2785,7 @@
   boxInputs.forEach(function (b, i) {
     b.addEventListener('input', function () {
       digits(b);
+      $('paBoxes').classList.remove('pa-bad');
       b.classList.toggle('pa-filled', b.value !== '');
       if (b.value && i < boxInputs.length - 1) boxInputs[i + 1].focus();
       if (boxInputs.every(function (x) { return x.value; })) doVerify();
@@ -2802,15 +2806,31 @@
   function doVerify() {
     var code = boxInputs.map(function (b) { return b.value; }).join('');
     if (code.length !== 6) { err('paOtpErr', 'Enter all 6 digits.'); return; }
+    if (doVerify._busy) return;
+    doVerify._busy = true;
     err('paOtpErr', '');
     var phone = fullPhone('paCc', 'paPhone');
-    showGate('verifying');
+    var boxes = $('paBoxes');
+    boxes.classList.remove('pa-shake', 'pa-bad', 'pa-verified');
+    $('paOtpBadge').classList.remove('show');
+    boxes.classList.add('pa-checking');
     api('/otp/verify', jsonOpts('POST', { hospitalId: hospitalId(), phone: phone, code: code })).then(function (res) {
       saveSess(res.token, res.patient);
-      afterLogin(res);
+      boxes.classList.remove('pa-checking');
+      boxes.classList.add('pa-verified');
+      $('paOtpBadge').classList.add('show');
+      setTimeout(function () {
+        doVerify._busy = false;
+        boxes.classList.remove('pa-verified');
+        $('paOtpBadge').classList.remove('show');
+        afterLogin(res);
+      }, 950);
     }).catch(function () {
-      showGate('otp');
+      doVerify._busy = false;
+      boxes.classList.remove('pa-checking');
+      boxes.classList.add('pa-bad', 'pa-shake');
       err('paOtpErr', 'That code did not work. Check the digits, or go back and ask for a new code.');
+      setTimeout(function () { boxes.classList.remove('pa-shake'); }, 550);
     });
   }
 
@@ -3266,6 +3286,68 @@
   document.addEventListener('visibilitychange', function () { if (!document.hidden) refreshTrack(true); });
 })();
 </script>
+<style>
+  /* OTP states (Nov 26, 2026, reel pattern): boxes sweep green on success
+     with a Verified badge beat before moving on; a shake and a red tint
+     answer a wrong code. Auto-verify on the sixth digit was already live. */
+  #paLogin .pa-boxes input { transition:background .25s ease, border-color .25s ease, color .25s ease; }
+  #paLogin .pa-boxes.pa-checking input { opacity:.7; }
+  #paLogin .pa-boxes.pa-verified input { background:#e3f5ec; border-color:#2fbf71; color:#0d6e43; }
+  #paLogin .pa-boxes.pa-verified input:nth-child(2) { transition-delay:60ms; }
+  #paLogin .pa-boxes.pa-verified input:nth-child(3) { transition-delay:120ms; }
+  #paLogin .pa-boxes.pa-verified input:nth-child(4) { transition-delay:180ms; }
+  #paLogin .pa-boxes.pa-verified input:nth-child(5) { transition-delay:240ms; }
+  #paLogin .pa-boxes.pa-verified input:nth-child(6) { transition-delay:300ms; }
+  #paLogin .pa-boxes.pa-bad input { background:#fdeceb; border-color:#d92d20; color:#8f1d14; }
+  #paLogin .pa-boxes.pa-shake { animation:paShake .5s ease; }
+  @keyframes paShake { 10% { transform:translateX(-7px); } 25% { transform:translateX(6px); } 40% { transform:translateX(-5px); } 55% { transform:translateX(4px); } 70% { transform:translateX(-3px); } 85% { transform:translateX(2px); } 100% { transform:translateX(0); } }
+  #paLogin .pa-otp-badge { display:flex; align-items:center; justify-content:center; gap:7px; height:30px; margin-top:9px; font-size:14px; font-weight:700; color:#0d6e43; opacity:0; transform:scale(.85); transition:opacity .25s ease, transform .25s cubic-bezier(.22,.9,.3,1.3); pointer-events:none; }
+  #paLogin .pa-otp-badge.show { opacity:1; transform:scale(1); }
+  #paLogin .pa-otp-check { width:21px; height:21px; border-radius:50%; background:#2fbf71; display:flex; align-items:center; justify-content:center; flex:none; }
+  /* Mobile compaction (Nov 26, 2026): the whole sign-in and sign-up flow
+     fits one phone screen with no scrolling. Desktop is untouched. */
+  @media (max-width: 940px) {
+    #paLogin .pa-card { max-height:calc(100dvh - 92px) !important; padding:16px 20px 12px; border-radius:24px; }
+    #paLogin .pa-brand { width:54px; height:54px; border-radius:17px; margin-bottom:5px; }
+    #paLogin .pa-logo { font-size:12px; letter-spacing:1.6px; }
+    #paLogin h1 { font-size:19px; margin:6px 0 4px; }
+    #paLogin .pa-sub { font-size:13px; line-height:1.38; }
+    #paLogin .pa-te { font-size:12.5px; margin-top:2px; }
+    #paLogin .pa-label { margin:8px 0 4px; font-size:13px; }
+    #paLogin .pa-input, #paLogin select.pa-input { padding:11px 12px; font-size:16px; border-radius:12px; }
+    #paLogin .pa-btn { margin-top:11px; padding:12px; font-size:16px; border-radius:14px; }
+    #paLogin .pa-alt { margin-top:9px; font-size:13.5px; }
+    #paLogin .pa-err { min-height:16px; margin-top:6px; font-size:12.5px; }
+    #paLogin .pa-boxes { margin:12px 0 2px; gap:6px; }
+    #paLogin .pa-boxes input { width:40px; height:48px; font-size:22px; border-radius:11px; }
+    #paLogin .pa-otp-badge { height:26px; margin-top:6px; font-size:13px; }
+    #paLogin .pa-demo { margin-top:9px; padding:7px 10px; font-size:13px; }
+    #paLogin .pa-trust { margin-top:9px; }
+    #paLogin .pa-trust-pill { font-size:11.5px; padding:5px 9px; }
+    #paLogin .pa-chips { gap:8px; margin-top:4px; }
+    #paLogin .pa-chip { padding:9px 0; font-size:14px; }
+    #paLogin .pa-check { width:62px; height:62px; margin:12px auto 4px; }
+    #paLogin .pa-spinner { width:42px; height:42px; margin:14px auto 2px; }
+  }
+  /* Very short screens (small phones, in-app browsers): a tighter tier so
+     the first screens still fit whole. The brand tile and the hospital
+     select carry the identity here, so the wordmark and the trust pill
+     step aside; the optional profile step may still scroll a little. */
+  @media (max-height: 700px) {
+    #paLogin .pa-card { max-height:calc(100dvh - 76px) !important; padding-top:10px; }
+    #paLogin .pa-brand { width:44px; height:44px; border-radius:14px; margin-bottom:3px; }
+    #paLogin .pa-logo { display:none; }
+    #paLogin .pa-sub { font-size:12.5px; line-height:1.3; }
+    #paLogin .pa-input, #paLogin select.pa-input { padding-top:9px; padding-bottom:9px; }
+    #paLogin .pa-btn { margin-top:8px; padding-top:10px; padding-bottom:10px; }
+    #paLogin .pa-err { min-height:0; margin-top:4px; }
+    #paLogin .pa-trust { display:none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #paLogin .pa-boxes.pa-shake { animation:none; }
+    #paLogin .pa-otp-badge { transition:none; }
+  }
+</style>
 <link rel="stylesheet" href="mascot.css?v=3d2">
 <script src="mascot-controller.js?v=3d2"></script>
 
